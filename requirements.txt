@@ -1,3 +1,2 @@
-openpmd-api==0.14.2
-h5py==3.3.0
-numpy==1.21.2
+python==3.11.*
+openpmd-api==0.15.*
