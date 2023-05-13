@@ -1,6 +1,12 @@
 # openPMD-converter-Geant
 Converter between openPMD and Geant
 
+## Installation
+
+```shell
+$ pip install git+https://github.com/berceanu/openPMD-converter-Geant.git#egg=opmdtogeant
+```
+
 ## Development
 
 After installing [micromamba](https://mamba.readthedocs.io/en/latest/installation.html#micromamba), create a new environment via
@@ -12,4 +18,9 @@ $ micromamba activate opmdgeant_env
 
 Afterwards, clone the repo and run `pip install -e .` in the same folder as this `README` file.
 
-To start all over again, do `micromamba env remove -n opmdgeant_env`.
+To start all over again, do 
+
+```shell
+$ micromamba deactivate
+$ micromamba env remove -n opmdgeant_env`
+```
