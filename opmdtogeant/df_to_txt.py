@@ -29,26 +29,20 @@ class DataFrameToFile:
         str
             A string that represents the custom header for the text file.
         """
-        # Mapping for special cases
-        special_cases = {
-            "um": "[um]",
-            "mev_c": "[MeV/c]",
-            "mev": "[MeV]",
+        # Hard-coded mapping from dataframe's column names to the desired header labels
+        column_name_mapping = {
+            "position_x_um": "position x [um]",
+            "position_y_um": "position y [um]",
+            "position_z_um": "position z [um]",
+            "momentum_x_mev_c": "momentum x [MeV/c]",
+            "momentum_y_mev_c": "momentum y [MeV/c]",
+            "momentum_z_mev_c": "momentum z [MeV/c]",
+            "weights": "weights",
+            "energy_mev": "energy [MeV]",
         }
 
-        header = []
-        for name in self.dataframe.columns:
-            parts = name.split("_")
-            # Combine the parts to consider "mev_c" as a whole unit
-            combined_parts = [
-                "_".join(parts[i : i + 2]) for i in range(0, len(parts), 2)
-            ]
-            # Convert special cases
-            for i, part in enumerate(combined_parts):
-                if part in special_cases:
-                    combined_parts[i] = special_cases[part]
-            # Join the parts back together and add to header
-            header.append(" ".join(combined_parts))
+        # Create header
+        header = [column_name_mapping[col] for col in self.dataframe.columns]
 
         # Combine all headers into a single string
         header_str = "# " + ",".join(header)
@@ -63,6 +57,7 @@ class DataFrameToFile:
         filename : str
             The name of the text file to be written.
         """
+        print("Writing dataframe to file. This may take a while...")
         header = self._create_header()
 
         # Write DataFrame to file without header
