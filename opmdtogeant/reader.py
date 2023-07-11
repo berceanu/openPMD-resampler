@@ -205,6 +205,10 @@ class HDF5Reader:
         )
         print("Descriptive statistics of the dataset:")
         print(df.describe())
+
+        weighted_average_energy = np.average(df["energy_mev"], weights=df["weights"])
+        print(f"The (weighted) mean energy is {weighted_average_energy:.6e} MeV.")
+
         print("Histogram of the weights column:")
         print(self._create_weight_histogram(df))
 
