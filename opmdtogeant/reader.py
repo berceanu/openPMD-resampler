@@ -1,11 +1,30 @@
 from typing import Tuple
+
 import numpy as np
 import openpmd_api as io
 import pandas as pd
+import scipy.constants as const
 import sparklines
 
-# Constants for maintainability and readability
-MOMENTUM_CONVERSION_FACTOR = 2.73092453e-22  # kg*m/s
+# Constants
+electron_mass_kg = const.m_e  # electron mass in kilograms
+speed_of_light = const.c  # speed of light in m/s
+joule_to_eV = const.electron_volt  # conversion factor from joules to electronvolts
+eV_to_MeV = 1e6  # conversion factor from electronvolts to megaelectronvolts
+meters_to_microns = 1e6  # conversion factor from meters to micrometers
+
+# Electron mass in MeV/c^2
+electron_mass_MeV_c2 = (electron_mass_kg * speed_of_light**2) / (
+    joule_to_eV * eV_to_MeV
+)
+
+# Momentum in kg*m/s
+momentum_kg_m_s = 1  # given
+# Momentum in MeV/c
+momentum_MeV_c = (momentum_kg_m_s * speed_of_light) / (joule_to_eV * eV_to_MeV)
+
+MOMENTUM_CONVERSION_FACTOR = momentum_MeV_c
+POSITION_CONVERSION_FACTOR = meters_to_microns
 EXPECTED_DIMS = {
     "position": np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
     "positionOffset": np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
@@ -131,8 +150,21 @@ class HDF5Reader:
     @staticmethod
     def _update_data_frame(df: pd.DataFrame, swap_axes: bool) -> pd.DataFrame:
         df = HDF5Reader._add_offsets_to_positions(df)
+        df = HDF5Reader._swap_yz_axes(df) if swap_axes else df
+        df = HDF5Reader._convert_position_units(df)
         df = HDF5Reader._convert_momentum_units(df)
-        return HDF5Reader._swap_yz_axes(df) if swap_axes else df
+        df = HDF5Reader._add_energy_column(df)
+        return df
+
+    @staticmethod
+    def _add_energy_column(df: pd.DataFrame) -> pd.DataFrame:
+        df["energy_mev"] = np.sqrt(
+            df["momentum_x_mev_c"] ** 2
+            + df["momentum_y_mev_c"] ** 2
+            + df["momentum_z_mev_c"] ** 2
+            + electron_mass_MeV_c2**2
+        )
+        return df
 
     @staticmethod
     def _add_offsets_to_positions(df: pd.DataFrame) -> pd.DataFrame:
@@ -143,10 +175,20 @@ class HDF5Reader:
         )
 
     @staticmethod
-    def _convert_momentum_units(df: pd.DataFrame) -> pd.DataFrame:
+    def _convert_position_units(df: pd.DataFrame) -> pd.DataFrame:
+        new_column_names = {}
         for component in COMPONENTS:
-            df[f"momentum_{component}"] /= MOMENTUM_CONVERSION_FACTOR
-        return df
+            df[f"position_{component}"] *= POSITION_CONVERSION_FACTOR
+            new_column_names[f"position_{component}"] = f"position_{component}_um"
+        return df.rename(columns=new_column_names)
+
+    @staticmethod
+    def _convert_momentum_units(df: pd.DataFrame) -> pd.DataFrame:
+        new_column_names = {}
+        for component in COMPONENTS:
+            df[f"momentum_{component}"] *= MOMENTUM_CONVERSION_FACTOR
+            new_column_names[f"momentum_{component}"] = f"momentum_{component}_mev_c"
+        return df.rename(columns=new_column_names)
 
     @staticmethod
     def _swap_yz_axes(df: pd.DataFrame) -> pd.DataFrame:
