@@ -39,15 +39,19 @@ class DataFrameToFile:
         header = []
         for name in self.dataframe.columns:
             parts = name.split("_")
+            # Combine the parts to consider "mev_c" as a whole unit
+            combined_parts = [
+                "_".join(parts[i : i + 2]) for i in range(0, len(parts), 2)
+            ]
             # Convert special cases
-            for i, part in enumerate(parts):
+            for i, part in enumerate(combined_parts):
                 if part in special_cases:
-                    parts[i] = special_cases[part]
+                    combined_parts[i] = special_cases[part]
             # Join the parts back together and add to header
-            header.append(" ".join(parts))
+            header.append(" ".join(combined_parts))
 
         # Combine all headers into a single string
-        header_str = "# " + " ".join(header)
+        header_str = "# " + ",".join(header)
         return header_str
 
     def write_to_file(self, filename: str) -> None:
@@ -62,7 +66,9 @@ class DataFrameToFile:
         header = self._create_header()
 
         # Write DataFrame to file without header
-        self.dataframe.to_csv(filename, sep=" ", index=False, header=False)
+        self.dataframe.to_csv(
+            filename, sep=",", index=False, header=False, float_format="%.16e"
+        )
 
         # Add custom header to file
         with open(filename, "r+") as file:
