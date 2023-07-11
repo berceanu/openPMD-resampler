@@ -13,10 +13,11 @@ def main():
     parser.add_argument("h5_path", type=str, help="Path to the HDF5 file")
     args = parser.parse_args()
 
-    # Create the dataframe
     h5_path = Path(args.h5_path)
-    h5_reader = HDF5Reader(str(h5_path))
-    df = h5_reader.read_file()
+
+    # Create the dataframe
+    h5_reader = HDF5Reader(h5_path)
+    df = h5_reader.build_df()
 
     # Write the dataframe to a file
     df_to_file = DataFrameToFile(df)

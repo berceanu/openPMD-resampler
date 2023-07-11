@@ -37,15 +37,15 @@ COMPONENTS = ["x", "y", "z"]
 class HDF5Reader:
     def __init__(self, file_path: str):
         """Initialize HDF5Reader with the file path."""
-        self.file_path = file_path
+        self.file_path = str(file_path)
 
-    def read_file(self) -> pd.DataFrame:
+    def build_df(self) -> pd.DataFrame:
         """
         Reads the HDF5 file and returns a DataFrame with position, momentum and weight data.
 
         Example:
         reader = HDF5Reader("path_to_file.h5")
-        df = reader.read_file()
+        df = reader.build_df()
         print(df)
 
         :return: DataFrame with position, momentum and weight data
