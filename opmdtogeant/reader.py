@@ -5,6 +5,8 @@ import openpmd_api as io
 import pandas as pd
 import sparklines
 
+mc = 2.73092453e-22  # kg*m/s
+
 
 class HDF5Reader:
     def __init__(self, file_path: str):
@@ -72,7 +74,7 @@ class HDF5Reader:
         units_dict = {}
         unit_dims_dict = {}
 
-        for attribute in ["position", "momentum"]:
+        for attribute in ["position", "positionOffset", "momentum"]:
             for component in ["x", "y", "z"]:
                 (
                     data_dict[f"{attribute}_{component}"],
@@ -93,6 +95,7 @@ class HDF5Reader:
 
         expected_dims = {
             "position": np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            "positionOffset": np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
             "momentum": np.array([1.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0]),
             "weights": np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
         }
@@ -105,6 +108,19 @@ class HDF5Reader:
 
         for column, unit in units_dict.items():
             df[column] *= unit
+
+        # Adding position offsets to position components
+        for component in ["x", "y", "z"]:
+            df[f"position_{component}"] += df[f"positionOffset_{component}"]
+
+        # Removing offset columns from dataframe after calculations
+        df.drop(
+            columns=[f"positionOffset_{component}" for component in ["x", "y", "z"]],
+            inplace=True,
+        )
+
+        for component in ["x", "y", "z"]:
+            df[f"momentum_{component}"] /= mc
 
         if code_is_picongpu:  # swap y and z axes
             for attribute in ["position", "momentum"]:
