@@ -29,13 +29,21 @@ class FigureCreator:
         dots per inch of the screen
     layout : list
         list containing the number of columns in each row
+    fig : matplotlib.figure.Figure
+        the created figure
+    axs : list of list of matplotlib.axes.Axes
+        the subplot axes
 
     Methods
     -------
     compute_dpi(W_px: int, H_px: int, D_in: float) -> float:
         computes the DPI of a screen
-    create_figure_and_subplots(pad: float = 3.0, h_pad: float = 3.0, w_pad: float = 3.0) -> Figure:
+    create_figure_and_subplots(pad: float = 3.0, h_pad: float = 3.0, w_pad: float = 3.0) -> None:
         creates a matplotlib figure and a grid of subplots
+    add_labels(x_labels: List[str], y_labels: List[str]) -> None:
+        adds labels to the axes of the subplots
+    save_figure(filename: str) -> None:
+        saves the figure to a file
     """
 
     def __init__(
@@ -48,20 +56,21 @@ class FigureCreator:
         """
         Parameters
         ----------
+        layout : list
+            The list containing the number of columns in each row
         W_px : int, optional
             The width of the screen in pixels (default is DEFAULT_W_PX)
         H_px : int, optional
             The height of the screen in pixels (default is DEFAULT_H_PX)
         dpi : float, optional
             The dots per inch of the screen (default is computed via compute_dpi)
-        layout : list
-            The list containing the number of columns in each row
         """
 
         self.W_px = W_px
         self.H_px = H_px
         self.dpi = dpi if dpi else self.compute_dpi(W_px, H_px, D_IN)
         self.layout = layout
+        self.create_figure_and_subplots()
 
     @staticmethod
     def compute_dpi(W_px: int, H_px: int, D_in: float) -> float:
@@ -70,7 +79,7 @@ class FigureCreator:
 
     def create_figure_and_subplots(
         self, pad: float = 3.0, h_pad: float = 3.0, w_pad: float = 3.0
-    ) -> Figure:
+    ) -> None:
         """
         Create a matplotlib figure and a grid of subplots.
 
@@ -82,13 +91,6 @@ class FigureCreator:
             Height padding between edges of adjacent subplots, as a fraction of the font size (default is 3.0)
         w_pad : float, optional
             Width padding between edges of adjacent subplots, as a fraction of the font size (default is 3.0)
-
-        Returns
-        -------
-        fig
-            A matplotlib.figure.Figure object with the desired layout of subplots
-        axs
-            A list of list of matplotlib.axes.Axes representing the subplot axes
         """
 
         # Convert pixels to inches for figure size
@@ -96,30 +98,59 @@ class FigureCreator:
         H_in = self.H_px / self.dpi
 
         # Create figure
-        fig = Figure(figsize=(W_in, H_in), dpi=self.dpi)
+        self.fig = Figure(figsize=(W_in, H_in), dpi=self.dpi)
 
         # Required for drawing onto the figure
-        canvas = FigureCanvasAgg(fig)
+        canvas = FigureCanvasAgg(self.fig)
 
         # Create a grid for the subplots
         nrows = len(self.layout)
-        gs = GridSpec(nrows, 1, figure=fig)  # One column at the top level
+        gs = GridSpec(nrows, 1, figure=self.fig)  # One column at the top level
 
         # Create subplots
-        axs = []
+        self.axs = []
         for i, ncols in enumerate(self.layout):
             # Create a new GridSpec for this row with the appropriate number of columns
             gs_i = gs[i].subgridspec(1, ncols)
 
             row = []
             for j in range(ncols):
-                ax = fig.add_subplot(gs_i[0, j])
+                ax = self.fig.add_subplot(gs_i[0, j])
                 # For now, just plot a simple line on each subplot
                 ax.plot([0, 1, 2], [0, 1, 2])
                 row.append(ax)
-            axs.append(row)
+            self.axs.append(row)
 
         # To make the plots fill the figure as much as possible
-        fig.tight_layout(pad=pad, h_pad=h_pad, w_pad=w_pad)
+        self.fig.tight_layout(pad=pad, h_pad=h_pad, w_pad=w_pad)
 
-        return fig, axs
+    def add_labels(self, x_labels: List[str], y_labels: List[str]) -> None:
+        """
+        Add labels to the axes of the subplots.
+
+        Parameters
+        ----------
+        x_labels : list of str
+            The x labels for the subplots
+        y_labels : list of str
+            The y labels for the subplots
+        """
+
+        label_idx = 0
+        for row in self.axs:
+            for ax in row:
+                ax.set_xlabel(x_labels[label_idx])
+                ax.set_ylabel(y_labels[label_idx])
+                label_idx += 1
+
+    def save_figure(self, filename: str) -> None:
+        """
+        Save the figure to a file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to save the figure to
+        """
+
+        self.fig.savefig(filename, dpi=self.dpi)
