@@ -46,38 +46,16 @@ def main():
     mean_gamma_mev = mean_gamma * electron_mass_MeV_c2
     print(f"\nopenPMD-viewer's (weighted) mean energy is {mean_gamma_mev:.6e} MeV.\n")
 
-    # Screen resolution in pixels
-    W_px = 1440
-    H_px = 900
-
-    # Screen size in inches
-    D_in = 13.3
-
-    # Compute DPI
-    dpi = FigureCreator.compute_dpi(W_px, H_px, D_in)
-
-    # Define layout
-    layout = [3, 3, 2]
-
     # Create a FigureCreator instance
-    fig_creator = FigureCreator(W_px, H_px, dpi, layout)
-
-    # Create figure and subplots
-    fig, axs = fig_creator.create_figure_and_subplots()
+    fig_creator = FigureCreator(layout=(3, 3, 2))
 
     # Apply x and y labels to each subplot
     x_labels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
     y_labels = ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8"]
-
-    label_idx = 0
-    for row in axs:
-        for ax in row:
-            ax.set_xlabel(x_labels[label_idx])
-            ax.set_ylabel(y_labels[label_idx])
-            label_idx += 1
+    fig_creator.add_labels(x_labels, y_labels)
 
     # Save the figure
-    fig.savefig("3x3x2.png", dpi=dpi)
+    fig_creator.save_figure("3x3x2.png")
 
 
 if __name__ == "__main__":
