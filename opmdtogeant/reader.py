@@ -34,6 +34,7 @@ EXPECTED_DIMS = {
 COMPONENTS = ["x", "y", "z"]
 
 
+# TODO: Refactor this class - channge class/method/module names
 class HDF5Reader:
     def __init__(self, file_path: str):
         """Initialize HDF5Reader with the file path."""
