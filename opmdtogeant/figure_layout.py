@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -6,11 +6,11 @@ from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
 # Screen resolution in pixels
-W_px = 1440
-H_px = 900
+DEFAULT_W_PX = 1440
+DEFAULT_H_PX = 900
 
 # Screen size in inches
-D_in = 13.3
+D_IN = 13.3
 
 
 class FigureCreator:
@@ -38,23 +38,29 @@ class FigureCreator:
         creates a matplotlib figure and a grid of subplots
     """
 
-    def __init__(self, W_px: int, H_px: int, dpi: float, layout: List[int]):
+    def __init__(
+        self,
+        layout: List[int],
+        W_px: Optional[int] = DEFAULT_W_PX,
+        H_px: Optional[int] = DEFAULT_H_PX,
+        dpi: Optional[float] = None,
+    ):
         """
         Parameters
         ----------
-        W_px : int
-            The width of the screen in pixels
-        H_px : int
-            The height of the screen in pixels
-        dpi : float
-            The dots per inch of the screen
+        W_px : int, optional
+            The width of the screen in pixels (default is DEFAULT_W_PX)
+        H_px : int, optional
+            The height of the screen in pixels (default is DEFAULT_H_PX)
+        dpi : float, optional
+            The dots per inch of the screen (default is computed via compute_dpi)
         layout : list
             The list containing the number of columns in each row
         """
 
         self.W_px = W_px
         self.H_px = H_px
-        self.dpi = dpi
+        self.dpi = dpi if dpi else self.compute_dpi(W_px, H_px, D_IN)
         self.layout = layout
 
     @staticmethod
