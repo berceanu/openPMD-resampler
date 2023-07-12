@@ -5,6 +5,13 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
+# Screen resolution in pixels
+W_px = 1440
+H_px = 900
+
+# Screen size in inches
+D_in = 13.3
+
 
 class FigureCreator:
     """
