@@ -163,3 +163,4 @@ cython_debug/
 h5/
 *.png
 clipboard.py
+*.pkl
