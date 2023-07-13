@@ -1,4 +1,5 @@
 python==3.11.*
 openpmd-api==0.15.*
-sparklines==0.4.*
 pandas==2.0.*
+datashader=0.15.*
+matplotlib=3.7.*

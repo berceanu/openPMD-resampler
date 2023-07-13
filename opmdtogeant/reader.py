@@ -4,9 +4,9 @@ import numpy as np
 import openpmd_api as io
 import pandas as pd
 import scipy.constants as const
-import sparklines
 
 # Constants
+electron_charge_picocoulombs = const.elementary_charge * 1e12  # electron charge in pC
 electron_mass_kg = const.m_e  # electron mass in kilograms
 speed_of_light = const.c  # speed of light in m/s
 joule_to_eV = const.electron_volt  # conversion factor from joules to electronvolts
@@ -202,29 +202,10 @@ class HDF5Reader:
     def _print_data_stats(self, df: pd.DataFrame):
         print("The laser is propagating along the z direction.")
         print(
-            f"The dataset contains {df.shape[0]:,} macroparticles, corresponding to {int(df['weights'].sum()):,} 'real' electrons."
+            f"The dataset contains {df.shape[0]:,} macroparticles, corresponding to {int(df['weights'].sum()):,} 'real' electrons, with a total charge of {df['weights'].sum() * electron_charge_picocoulombs:.2f} pC."
         )
         print("Descriptive statistics of the dataset:")
         print(df.describe())
 
         weighted_average_energy = np.average(df["energy_mev"], weights=df["weights"])
         print(f"The (weighted) mean energy is {weighted_average_energy:.6e} MeV.")
-
-        print("Histogram of the weights column:")
-        print(self._create_weight_histogram(df))
-
-    @staticmethod
-    def _create_weight_histogram(
-        df: pd.DataFrame, num_bins: int = 10, num_lines: int = 2
-    ) -> str:
-        """
-        Creates a histogram of the weights column of the dataframe with a given number of bins
-        and returns a sparklines string representation of it with a given number of lines.
-
-        :param df: DataFrame with position, momentum and weight data
-        :param num_bins: number of bins for the histogram, default is 10
-        :param num_lines: number of lines for the sparklines representation, default is 2
-        :return: a string with sparklines representation of the histogram
-        """
-        hist, _ = np.histogram(df["weights"], bins=num_bins)
-        return "\n".join(sparklines.sparklines(hist, num_lines=num_lines))
