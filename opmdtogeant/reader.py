@@ -197,10 +197,11 @@ class HDF5Reader:
             df[[f"{attribute}_y", f"{attribute}_z"]] = df[
                 [f"{attribute}_z", f"{attribute}_y"]
             ]
+        print("Swapping y and z axes.")
         return df
 
     def _print_data_stats(self, df: pd.DataFrame):
-        print("The laser is propagating along the z direction.")
+        print("The particle bunch is propagating along the z direction.")
         print(
             f"The dataset contains {df.shape[0]:,} macroparticles, corresponding to {int(df['weights'].sum()):,} 'real' electrons, with a total charge of {df['weights'].sum() * electron_charge_picocoulombs:.2f} pC."
         )
