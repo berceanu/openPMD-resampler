@@ -1,9 +1,16 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
+import datashader as ds
+import matplotlib.colors as mcolors
 import numpy as np
+import pandas as pd
+from datashader.mpl_ext import dsshow
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import LogFormatter, ScalarFormatter
 
 # Screen resolution in pixels
 DEFAULT_W_PX = 1440
@@ -11,6 +18,23 @@ DEFAULT_H_PX = 900
 
 # Screen size in inches
 D_IN = 13.3
+
+
+def generate_custom_colormap(colors: list):
+    """
+    Generate a custom colormap from a given list of colors.
+
+    :param colors: List of colors.
+    :return: matplotlib colormap.
+    """
+    positions = [i / (len(colors) - 1) for i in range(len(colors))]
+    return mcolors.LinearSegmentedColormap.from_list(
+        "custom", list(zip(positions, colors))
+    )
+
+
+COLORS = ["black", "darkblue", "lightblue", "purple", "yellow"]
+PURPLE_RABBIT = generate_custom_colormap(COLORS)
 
 
 class FigureCreator:
@@ -40,8 +64,6 @@ class FigureCreator:
         computes the DPI of a screen
     create_figure_and_subplots(pad: float = 3.0, h_pad: float = 3.0, w_pad: float = 3.0) -> None:
         creates a matplotlib figure and a grid of subplots
-    add_labels(x_labels: List[str], y_labels: List[str]) -> None:
-        adds labels to the axes of the subplots
     save_figure(filename: str) -> None:
         saves the figure to a file
     """
@@ -116,32 +138,79 @@ class FigureCreator:
             row = []
             for j in range(ncols):
                 ax = self.fig.add_subplot(gs_i[0, j])
-                # For now, just plot a simple line on each subplot
-                ax.plot([0, 1, 2], [0, 1, 2])
                 row.append(ax)
             self.axs.append(row)
 
         # To make the plots fill the figure as much as possible
         self.fig.tight_layout(pad=pad, h_pad=h_pad, w_pad=w_pad)
 
-    def add_labels(self, x_labels: List[str], y_labels: List[str]) -> None:
+    def shade_plot(
+        self,
+        ax_position: Tuple[int, int],
+        df: pd.DataFrame,
+        x_col: str,
+        y_col: str,
+        x_label: str,
+        y_label: str,
+        weight_col: str = "weights",
+        norm: LogNorm = "log",
+    ) -> None:
         """
-        Add labels to the axes of the subplots.
+        Create a datashader plot and shade it.
 
         Parameters
         ----------
-        x_labels : list of str
-            The x labels for the subplots
-        y_labels : list of str
-            The y labels for the subplots
+        df : pd.DataFrame
+            The dataframe containing the data
+        x_col : str
+            The column name for the x axis
+        y_col : str
+            The column name for the y axis
+        weight_col : str, optional
+            The column name for the weights (default is "weights")
+        ax_position : tuple
+            The position of the axes on which to plot (row index, column index)
+        x_label : str
+            The label for the x axis
+        y_label : str
+            The label for the y axis
         """
 
-        label_idx = 0
-        for row in self.axs:
-            for ax in row:
-                ax.set_xlabel(x_labels[label_idx])
-                ax.set_ylabel(y_labels[label_idx])
-                label_idx += 1
+        # TODO add out of bounds handling
+        ax = self.axs[ax_position[0]][ax_position[1]]
+
+        dsartist = dsshow(
+            df,
+            ds.Point(x_col, y_col),
+            ds.sum(weight_col),
+            norm=norm,
+            cmap=PURPLE_RABBIT,
+            aspect="auto",
+            ax=ax,
+        )
+
+        # Customize x and y axes
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label, labelpad=-2)
+
+        # Customize tick labels
+        ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
+        ax.tick_params(axis="both", which="major", labelsize=8)
+
+    def create_colorbar(self, cbar_label: str = "Number of 'real' electrons") -> None:
+        """Create a colorbar for the last artist used in a dsshow call."""
+        self.fig.subplots_adjust(right=0.91)
+        cax = self.fig.add_axes([0.92, 0.15, 0.025, 0.7])
+
+        # Create a "fake" ScalarMappable with the colormap and norm
+        sm = ScalarMappable(cmap=PURPLE_RABBIT, norm=LogNorm(vmin=10, vmax=1e8))
+        sm.set_array([])  # Make the image invisible
+
+        # Now we can create the colorbar
+        cbar = self.fig.colorbar(sm, cax=cax, orientation="vertical")
+        cbar.set_label(cbar_label)
 
     def save_figure(self, filename: str) -> None:
         """
