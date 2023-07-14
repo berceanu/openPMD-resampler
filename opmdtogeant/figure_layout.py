@@ -99,6 +99,16 @@ class FigureCreator:
         """Compute the DPI of a screen."""
         return (W_px**2 + H_px**2) ** 0.5 / D_in
 
+    def _get_ax(self, ax_position):
+        nrows, ncols = len(self.axs), len(self.axs[0])
+
+        if ax_position[0] >= nrows or ax_position[1] >= ncols:
+            raise IndexError(
+                f"Axes index {ax_position} is out of bounds for axs with size {nrows}x{ncols}."
+            )
+
+        return self.axs[ax_position[0]][ax_position[1]]
+
     def create_figure_and_subplots(
         self, pad: float = 3.0, h_pad: float = 3.0, w_pad: float = 3.0
     ) -> None:
@@ -176,8 +186,7 @@ class FigureCreator:
             The label for the y axis
         """
 
-        # TODO add out of bounds handling
-        ax = self.axs[ax_position[0]][ax_position[1]]
+        ax = self._get_ax(ax_position)
 
         dsartist = dsshow(
             df,
