@@ -1,11 +1,13 @@
 import argparse
 from pathlib import Path
 
+from matplotlib.colors import LogNorm
 from openpmd_viewer.addons import LpaDiagnostics
 
 from opmdtogeant.df_to_txt import DataFrameToFile
 from opmdtogeant.figure_layout import FigureCreator
-from opmdtogeant.particle_visualizer import ParticleVisualizer
+
+# from opmdtogeant.phase_space_diagrams import ParticleVisualizer
 from opmdtogeant.reader import HDF5Reader, electron_mass_MeV_c2
 
 
@@ -20,6 +22,10 @@ def main():
     # Create the dataframe
     h5_reader = HDF5Reader(h5_path)
     df = h5_reader.build_df()
+
+    selected_columns = ["position_x_um", "position_y_um", "weights"]
+    new_df = df[selected_columns].copy()
+    new_df.to_pickle("reduced_dataframe.pkl")
 
     # Write the dataframe to a file
     # df_to_file = DataFrameToFile(df)
@@ -47,15 +53,174 @@ def main():
     print(f"\nopenPMD-viewer's (weighted) mean energy is {mean_gamma_mev:.6e} MeV.\n")
 
     # Create a FigureCreator instance
-    fig_creator = FigureCreator(layout=(3, 3, 2))
+    fig_creator = FigureCreator(layout=[3, 3])
 
-    # Apply x and y labels to each subplot
-    x_labels = ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8"]
-    y_labels = ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8"]
-    fig_creator.add_labels(x_labels, y_labels)
+    # Calculate the global maximum and minimum
+    global_min = df["weights"].min()
+
+    # Create a LogNorm instance with the global max and min
+    norm = LogNorm(vmin=global_min, vmax=1e8)
+
+    # Top row plots
+    fig_creator.shade_plot(
+        ax_position=(0, 0),
+        df=df,
+        x_col="position_x_um",
+        y_col="position_y_um",
+        x_label=r"$x$ ($\mu$m)",
+        y_label=r"$y$ ($\mu$m)",
+        norm=norm,
+    )
+
+    fig_creator.shade_plot(
+        ax_position=(0, 1),
+        df=df,
+        x_col="position_z_um",
+        y_col="position_x_um",
+        x_label=r"$z$ ($\mu$m)",
+        y_label=r"$x$ ($\mu$m)",
+        norm=norm,
+    )
+
+    fig_creator.shade_plot(
+        ax_position=(0, 2),
+        df=df,
+        x_col="position_z_um",
+        y_col="position_y_um",
+        x_label=r"$z$ ($\mu$m)",
+        y_label=r"$y$ ($\mu$m)",
+        norm=norm,
+    )
+
+    # Bottom row plots
+    fig_creator.shade_plot(
+        ax_position=(1, 0),
+        df=df,
+        x_col="momentum_x_mev_c",
+        y_col="momentum_y_mev_c",
+        x_label=r"$p_{\mathrm{x}}$ (MeV/c)",
+        y_label=r"$p_{\mathrm{y}}$ (MeV/c)",
+        norm=norm,
+    )
+
+    fig_creator.shade_plot(
+        ax_position=(1, 1),
+        df=df,
+        x_col="momentum_x_mev_c",
+        y_col="momentum_z_mev_c",
+        x_label=r"$p_{\mathrm{x}}$ (MeV/c)",
+        y_label=r"$p_{\mathrm{z}}$ (MeV/c)",
+        norm=norm,
+    )
+
+    fig_creator.shade_plot(
+        ax_position=(1, 2),
+        df=df,
+        x_col="momentum_y_mev_c",
+        y_col="momentum_z_mev_c",
+        x_label=r"$p_{\mathrm{y}}$ (MeV/c)",
+        y_label=r"$p_{\mathrm{z}}$ (MeV/c)",
+        norm=norm,
+    )
+
+    # Create a colorbar
+    fig_creator.create_colorbar()
 
     # Save the figure
-    fig_creator.save_figure("3x3x2.png")
+    fig_creator.save_figure("2x3.png")
+
+    # Create a FigureCreator instance
+    fig_emittance = FigureCreator(layout=[3, 3, 3])
+
+    fig_emittance.shade_plot(
+        ax_position=(0, 0),
+        df=df,
+        x_col="position_x_um",
+        y_col="momentum_x_mev_c",
+        x_label=r"$x$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{x}}$ (MeV/c)",
+        norm=norm,
+    )
+    fig_emittance.shade_plot(
+        ax_position=(0, 1),
+        df=df,
+        x_col="position_x_um",
+        y_col="momentum_y_mev_c",
+        x_label=r"$x$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{y}}$ (MeV/c)",
+        norm=norm,
+    )
+    fig_emittance.shade_plot(
+        ax_position=(0, 2),
+        df=df,
+        x_col="position_x_um",
+        y_col="momentum_z_mev_c",
+        x_label=r"$x$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{z}}$ (MeV/c)",
+        norm=norm,
+    )
+    # middle row
+    fig_emittance.shade_plot(
+        ax_position=(1, 0),
+        df=df,
+        x_col="position_y_um",
+        y_col="momentum_x_mev_c",
+        x_label=r"$y$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{x}}$ (MeV/c)",
+        norm=norm,
+    )
+    fig_emittance.shade_plot(
+        ax_position=(1, 1),
+        df=df,
+        x_col="position_y_um",
+        y_col="momentum_y_mev_c",
+        x_label=r"$y$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{y}}$ (MeV/c)",
+        norm=norm,
+    )
+    fig_emittance.shade_plot(
+        ax_position=(1, 2),
+        df=df,
+        x_col="position_y_um",
+        y_col="momentum_z_mev_c",
+        x_label=r"$y$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{z}}$ (MeV/c)",
+        norm=norm,
+    )
+    # bottom row
+    fig_emittance.shade_plot(
+        ax_position=(2, 0),
+        df=df,
+        x_col="position_z_um",
+        y_col="momentum_x_mev_c",
+        x_label=r"$z$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{x}}$ (MeV/c)",
+        norm=norm,
+    )
+    fig_emittance.shade_plot(
+        ax_position=(2, 1),
+        df=df,
+        x_col="position_z_um",
+        y_col="momentum_y_mev_c",
+        x_label=r"$z$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{y}}$ (MeV/c)",
+        norm=norm,
+    )
+    fig_emittance.shade_plot(
+        ax_position=(2, 2),
+        df=df,
+        x_col="position_z_um",
+        y_col="momentum_z_mev_c",
+        x_label=r"$z$ ($\mu$m)",
+        y_label=r"$p_{\mathrm{z}}$ (MeV/c)",
+        norm=norm,
+    )
+
+    # Create a colorbar
+    fig_emittance.create_colorbar()
+
+    # Save the figure
+    fig_emittance.save_figure("emittance.png")
 
 
 if __name__ == "__main__":
