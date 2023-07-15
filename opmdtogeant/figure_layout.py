@@ -10,7 +10,7 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import LogFormatter, ScalarFormatter
+from matplotlib.ticker import ScalarFormatter
 
 # Screen resolution in pixels
 DEFAULT_W_PX = 1440
@@ -153,6 +153,115 @@ class FigureCreator:
 
         # To make the plots fill the figure as much as possible
         self.fig.tight_layout(pad=pad, h_pad=h_pad, w_pad=w_pad)
+
+    def weight_distribution_plot(
+        self,
+        ax_position: Tuple[int, int],
+        df: pd.DataFrame,
+        weight_col: str = "weights",
+        bins: int = 200,
+    ):
+        # Define the logarithmic bins
+        log_bins = np.logspace(
+            np.log10(df[weight_col].min()),
+            np.log10(df[weight_col].max()),
+            num=bins,
+            base=10,
+        )
+        # Create histogram
+        counts, bin_edges = np.histogram(df[weight_col], bins=log_bins)
+
+        # The width of the bins in log scale is the difference in log-space of the bin edges
+        bin_width = np.diff(np.log10(bin_edges))
+
+        # Now we calculate the number of entries per bin divided by the width of the bin.
+        # This is equivalent to the density of entries per bin in log scale.
+        density = counts / bin_width
+
+        # Set the x coordinates of the line plot.
+        # Use the midpoint of each bin as x-coordinates.
+        x_coords = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+        ax = self._get_ax(ax_position)
+        ax.plot(
+            x_coords,
+            density,
+            marker="o",
+            linestyle="-",
+            linewidth=0.5,
+            color="royalblue",
+            markersize=2,
+        )
+        # Set the y-axis to log scale
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        ax.set_xlabel("w (weights)")
+        ax.set_ylabel("dN/dln(w)")
+
+        # Add fine grid lines
+        ax.grid(
+            True,
+            which="both",
+            color="lightgray",
+            ls="--",
+            lw=0.5,
+            alpha=0.6,
+        )
+
+    def histogram_plot(
+        self,
+        ax_position: Tuple[int, int],
+        df: pd.DataFrame,
+        col: str,
+        x_label: str,
+        bins: int = 200,
+        y_label: str = "Number of 'real' electrons",
+        weight_col: str = "weights",
+    ):
+        # Calculate the histogram bin edges
+        col_bins = np.histogram_bin_edges(df[col], bins=bins)
+
+        # Set the x coordinates of the line plot.
+        # Use the midpoint of each bin as x-coordinates.
+        x_coords = (col_bins[:-1] + col_bins[1:]) / 2
+
+        # Calculate the histogram
+        counts, _ = np.histogram(
+            df[col],
+            bins=col_bins,
+            weights=df[weight_col],
+        )
+
+        ax = self._get_ax(ax_position)
+        ax.plot(
+            x_coords,
+            counts,
+            marker="o",
+            linestyle="-",
+            linewidth=0.5,
+            color="royalblue",
+            markersize=2,
+        )
+
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+
+        # Add fine grid lines
+        ax.grid(
+            True,
+            which="both",
+            color="lightgray",
+            ls="--",
+            lw=0.5,
+            alpha=0.6,
+        )
+
+        # Customize tick labels
+        ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+        ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
+        ax.tick_params(axis="both", which="major", labelsize=8)
 
     def shade_plot(
         self,
