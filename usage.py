@@ -22,7 +22,8 @@ def main():
 
     # Write the dataframe to a file
     df_to_file = DataFrameToFile(df)
-    df_to_file.write_to_file(h5_path.with_suffix(".txt"))
+    # TODO: uncomment
+    # df_to_file.write_to_file(h5_path.with_suffix(".txt")) # slow
 
     # Create the phase space plots
     phase_space = PhaseSpaceVisualizer(

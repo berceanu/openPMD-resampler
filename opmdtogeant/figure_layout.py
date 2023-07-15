@@ -37,6 +37,8 @@ COLORS = ["black", "darkblue", "lightblue", "purple", "yellow"]
 PURPLE_RABBIT = generate_custom_colormap(COLORS)
 
 
+# TODO: Refactor this class
+# TODO: Try to plot 2 dataframes on the same plot
 class FigureCreator:
     """
     A class used to create matplotlib figures with a flexible layout.
