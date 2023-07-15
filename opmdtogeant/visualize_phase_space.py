@@ -101,7 +101,7 @@ class PhaseSpaceVisualizer:
 
     def plot_bunch(self, output_filename: str = "2x3.png"):
         layout = [3, 3]
-        num_rows = len(layout)
+        # Assume both rows have the same number of columns
         num_cols = layout[0]
         fig = FigureCreator(layout=layout)
 
