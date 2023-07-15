@@ -164,3 +164,4 @@ h5/
 *.png
 clipboard.py
 *.pkl
+*.csv
