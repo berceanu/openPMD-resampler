@@ -7,7 +7,7 @@ setup(
     author="Andrei Berceanu",
     author_email="andreicberceanu@gmail.com",
     packages=find_packages(),
-    python_requires='==3.11.*',
+    python_requires="==3.11.*",
     install_requires=[
         "openpmd-api==0.15.*",
     ],
@@ -18,3 +18,5 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
 )
+
+# TODO: update requirements
