@@ -1,6 +1,8 @@
 ## TODO
 
+- [x] create virtual development environment
+- [x] install latest openpmd-api version
 - [ ] renormalize momenta/energy
-- [ ] create virtual development environment
-- [ ] install latest openpmd-api version
+- [ ] try with anissa hdf5 file
+
 - [ ] delete this file
