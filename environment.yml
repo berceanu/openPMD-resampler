@@ -1,7 +1,7 @@
 # Micromamba environment file
 # https://marketplace.visualstudio.com/items?itemName=corker.vscode-micromamba
 
-name: default
+name: thinningenv
 
 channels:
   - conda-forge
