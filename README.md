@@ -16,7 +16,7 @@ $ micromamba create -n opmdgeant_env -f requirements.txt -c conda-forge
 $ micromamba activate opmdgeant_env
 ```
 
-Afterwards, clone the repo and run `pip install -e .` in the same folder as this `README` file.
+Afterwards, clone the repo and run `python -m pip install -e .` in the same folder as this `README` file.
 
 To start all over again, do 
 
