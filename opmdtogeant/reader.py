@@ -36,9 +36,10 @@ COMPONENTS = ["x", "y", "z"]
 
 # TODO: Refactor this class - channge class/method/module names
 class HDF5Reader:
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, particle_species_name: str = "e_all"):
         """Initialize HDF5Reader with the file path."""
         self.file_path = str(file_path)
+        self.particle_species_name = particle_species_name
 
     def build_df(self) -> pd.DataFrame:
         """
@@ -56,7 +57,7 @@ class HDF5Reader:
         swap_yz = series.software == "PIConGPU"
 
         iteration = self._get_iteration(series)
-        electrons = iteration.particles["e_all"]
+        electrons = iteration.particles[self.particle_species_name]
 
         data, units, dimensions = self._get_particle_data_and_units(electrons)
 
@@ -64,6 +65,12 @@ class HDF5Reader:
 
         # Flush chunks with actual data and delete series to free memory
         series.flush()
+
+        macro_weighted = electrons["momentum"].get_attribute("macroWeighted")
+        weighting_power = electrons["momentum"].get_attribute("weightingPower")
+        if (macro_weighted == 1) and (weighting_power != 0):
+            data = self._renormalize_momenta(data, weighting_power)
+
         del series
 
         df = self._create_dataframe(data, units)
@@ -140,6 +147,11 @@ class HDF5Reader:
     @staticmethod
     def _assert_dimension_close(actual: np.ndarray, expected: np.ndarray):
         np.testing.assert_allclose(actual, expected, atol=1e-9, rtol=0)
+
+    def _renormalize_momenta(self, data: dict, weighting_power: float) -> dict:
+        for component in COMPONENTS:
+            data[f"momentum_{component}"] *= data["weights"] ** (-weighting_power)
+        return data
 
     def _create_dataframe(self, data: dict, units: dict) -> pd.DataFrame:
         df = pd.DataFrame(data)
