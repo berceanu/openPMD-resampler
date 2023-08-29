@@ -69,7 +69,7 @@ class HDF5Reader:
         macro_weighted = electrons["momentum"].get_attribute("macroWeighted")
         weighting_power = electrons["momentum"].get_attribute("weightingPower")
         if (macro_weighted == 1) and (weighting_power != 0):
-            data = self._renormalize_momenta(data, weighting_power)
+            data = self._rescale_momenta(data, weighting_power)
 
         del series
 
@@ -148,7 +148,7 @@ class HDF5Reader:
     def _assert_dimension_close(actual: np.ndarray, expected: np.ndarray):
         np.testing.assert_allclose(actual, expected, atol=1e-9, rtol=0)
 
-    def _renormalize_momenta(self, data: dict, weighting_power: float) -> dict:
+    def _rescale_momenta(self, data: dict, weighting_power: float) -> dict:
         for component in COMPONENTS:
             data[f"momentum_{component}"] *= data["weights"] ** (-weighting_power)
         return data

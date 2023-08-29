@@ -4,8 +4,8 @@
 - [x] install latest openpmd-api version
 - [x] renormalize momenta/energy
 - [x] try with anissa hdf5 file
+- [x] implement comparison before/after thinning plot
+- [x] implement trivial thinning, setting all weights to 1
 - [ ] refactor classes
-- [ ] implement trivial thinning, setting all weights to 1
-- [ ] implement comparison before/after thinning plot
 
 - [ ] delete this file

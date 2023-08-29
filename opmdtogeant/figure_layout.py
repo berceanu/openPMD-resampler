@@ -1,6 +1,7 @@
 from typing import List, Optional, Tuple
 
 import datashader as ds
+import matplotlib
 import matplotlib.colors as mcolors
 import numpy as np
 import pandas as pd
@@ -38,7 +39,6 @@ PURPLE_RABBIT = generate_custom_colormap(COLORS)
 
 
 # TODO: Refactor this class
-# TODO: Try to plot 2 dataframes on the same plot
 class FigureCreator:
     """
     A class used to create matplotlib figures with a flexible layout.
@@ -76,6 +76,7 @@ class FigureCreator:
         W_px: Optional[int] = DEFAULT_W_PX,
         H_px: Optional[int] = DEFAULT_H_PX,
         dpi: Optional[float] = None,
+        title: Optional[Tuple[str, str]] = None,
     ):
         """
         Parameters
@@ -94,6 +95,7 @@ class FigureCreator:
         self.H_px = H_px
         self.dpi = dpi if dpi else self.compute_dpi(W_px, H_px, D_IN)
         self.layout = layout
+        self.title = title
         self.create_figure_and_subplots()
 
     @staticmethod
@@ -134,6 +136,10 @@ class FigureCreator:
         # Create figure
         self.fig = Figure(figsize=(W_in, H_in), dpi=self.dpi)
 
+        # Add title to the figure
+        if self.title is not None:
+            self.fig.suptitle(self.title[0], y=0.92, color=self.title[1])
+
         # Required for drawing onto the figure
         canvas = FigureCanvasAgg(self.fig)
 
@@ -158,11 +164,66 @@ class FigureCreator:
 
     def weight_distribution_plot(
         self,
-        ax_position: Tuple[int, int],
         df: pd.DataFrame,
+        ax_position: Optional[Tuple[int, int]] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         weight_col: str = "weights",
         bins: int = 200,
+        label: Optional[str] = None,
     ):
+        if (ax_position is None and ax is None) or (
+            ax_position is not None and ax is not None
+        ):
+            raise ValueError(
+                "Either ax_position or ax should be specified, but not both."
+            )
+
+        if ax is None:
+            using_right_y_axis = False
+            color = "royalblue"
+            ax = self._get_ax(ax_position)
+        else:
+            using_right_y_axis = True
+            color = "#FF7F0E"  # orange
+
+        if df[weight_col].nunique() == 1:  # All weights are the same
+            weight_value = df[weight_col].iloc[0]  # take the first weight
+
+            dN = len(df)
+            dlnw = 1  # an infinitesimally small value for the natural logarithm of the same weight
+
+            # Plot a single spike. Height is dN/dln(w), which would theoretically be infinity in this case.
+            ax.bar(
+                weight_value,
+                dN / dlnw,
+                width=weight_value * 0.05,
+                color=color,
+                log=True,
+                label=label,
+            )
+
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+
+            if not using_right_y_axis:
+                ax.set_xlabel("w (weights)")
+                ax.set_ylabel("dN/dln(w)")
+
+                # Add fine grid lines
+                ax.grid(
+                    True,
+                    which="both",
+                    color="lightgray",
+                    ls="--",
+                    lw=0.5,
+                    alpha=0.6,
+                )
+
+            ax.tick_params(axis="y", labelcolor=color)
+            ax.legend(loc="upper left", labelcolor=color)
+
+            return
+
         # Define the logarithmic bins
         log_bins = np.logspace(
             np.log10(df[weight_col].min()),
@@ -184,43 +245,56 @@ class FigureCreator:
         # Use the midpoint of each bin as x-coordinates.
         x_coords = (bin_edges[:-1] + bin_edges[1:]) / 2
 
-        ax = self._get_ax(ax_position)
         ax.plot(
             x_coords,
             density,
             marker="o",
             linestyle="-",
-            linewidth=0.5,
-            color="royalblue",
-            markersize=2,
+            linewidth=0.4,
+            color=color,
+            markersize=1,
+            label=label,
         )
-        # Set the y-axis to log scale
+
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-        ax.set_xlabel("w (weights)")
-        ax.set_ylabel("dN/dln(w)")
+        if not using_right_y_axis:
+            ax.set_xlabel("w (weights)")
+            ax.set_ylabel("dN/dln(w)")
 
-        # Add fine grid lines
-        ax.grid(
-            True,
-            which="both",
-            color="lightgray",
-            ls="--",
-            lw=0.5,
-            alpha=0.6,
-        )
+            # Add fine grid lines
+            ax.grid(
+                True,
+                which="both",
+                color="lightgray",
+                ls="--",
+                lw=0.5,
+                alpha=0.6,
+            )
+
+        ax.tick_params(axis="y", labelcolor=color)
+        ax.legend(loc="upper center", labelcolor=color)
 
     def histogram_plot(
         self,
-        ax_position: Tuple[int, int],
         df: pd.DataFrame,
         col: str,
         x_label: str,
+        ax_position: Optional[Tuple[int, int]] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
         bins: int = 200,
         y_label: str = "Number of 'real' electrons",
+        use_y_label: Optional[bool] = True,
         weight_col: str = "weights",
     ):
+        if (ax_position is None and ax is None) or (
+            ax_position is not None and ax is not None
+        ):
+            raise ValueError(
+                "Either ax_position or ax should be specified, but not both."
+            )
+
         # Calculate the histogram bin edges
         col_bins = np.histogram_bin_edges(df[col], bins=bins)
 
@@ -235,35 +309,45 @@ class FigureCreator:
             weights=df[weight_col],
         )
 
-        ax = self._get_ax(ax_position)
+        if ax is None:
+            using_right_y_axis = False
+            color = "royalblue"
+            ax = self._get_ax(ax_position)
+        else:
+            using_right_y_axis = True
+            color = "#FF7F0E"  # orange
+
         ax.plot(
             x_coords,
             counts,
             marker="o",
             linestyle="-",
-            linewidth=0.5,
-            color="royalblue",
-            markersize=2,
+            linewidth=0.4,
+            color=color,
+            markersize=1,
         )
 
-        ax.set_xlabel(x_label)
-        ax.set_ylabel(y_label)
+        if not using_right_y_axis:
+            ax.set_xlabel(x_label)
+            if use_y_label:
+                ax.set_ylabel(y_label)
 
-        # Add fine grid lines
-        ax.grid(
-            True,
-            which="both",
-            color="lightgray",
-            ls="--",
-            lw=0.5,
-            alpha=0.6,
-        )
+            # Add fine grid lines
+            ax.grid(
+                True,
+                which="both",
+                color="lightgray",
+                ls="--",
+                lw=0.5,
+                alpha=0.6,
+            )
 
         # Customize tick labels
         ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
         ax.xaxis.set_major_formatter(ScalarFormatter(useMathText=True))
         ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
         ax.tick_params(axis="both", which="major", labelsize=8)
+        ax.tick_params(axis="y", labelcolor=color)
 
     def shade_plot(
         self,
@@ -319,13 +403,15 @@ class FigureCreator:
         ax.ticklabel_format(style="sci", axis="both", scilimits=(0, 0))
         ax.tick_params(axis="both", which="major", labelsize=8)
 
-    def create_colorbar(self, cbar_label: str = "Number of 'real' electrons") -> None:
+    def create_colorbar(
+        self, norm, cbar_label: str = "Number of 'real' electrons"
+    ) -> None:
         """Create a colorbar for the last artist used in a dsshow call."""
         self.fig.subplots_adjust(right=0.91)
         cax = self.fig.add_axes([0.92, 0.15, 0.025, 0.7])
 
         # Create a "fake" ScalarMappable with the colormap and norm
-        sm = ScalarMappable(cmap=PURPLE_RABBIT, norm=LogNorm(vmin=10, vmax=1e8))
+        sm = ScalarMappable(cmap=PURPLE_RABBIT, norm=norm)
         sm.set_array([])  # Make the image invisible
 
         # Now we can create the colorbar
