@@ -36,17 +36,16 @@ def main():
         dataframe=df,
         weight_column="weights",
     )
-    # df_thin = resampler.set_weights_to(1)
     df_thin = resampler.simple_thinning(number_of_remaining_particles=10**5)
-    print(df_thin.describe())
+    reresampler = ParticleResampler(df_thin)
+    df_thiner = reresampler.set_weights_to(1)
+    print(df_thiner.describe())
     print(
-        f"The dataset contains {df_thin.shape[0]:,} macroparticles, corresponding to {int(df_thin['weights'].sum()):,} 'real' electrons"
+        f"The dataset contains {df_thiner.shape[0]:,} macroparticles, corresponding to {int(df_thiner['weights'].sum()):,} 'real' electrons."
     )
 
     phase_space_thin = PhaseSpaceVisualizer(
-        dataframe=df_thin,
-        weight_column="weights",
-        energy_column="energy_mev",
+        dataframe=df_thiner,
     )
 
     # visualize both dataframes in order to see effects of thining
