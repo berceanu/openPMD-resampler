@@ -220,7 +220,11 @@ class FigureCreator:
                 )
 
             ax.tick_params(axis="y", labelcolor=color)
-            ax.legend(loc="upper left", labelcolor=color)
+
+            if not using_right_y_axis:
+                ax.legend(loc="upper left", labelcolor=color)
+            else:
+                ax.legend(loc="upper center", labelcolor=color)
 
             return
 
@@ -274,7 +278,10 @@ class FigureCreator:
             )
 
         ax.tick_params(axis="y", labelcolor=color)
-        ax.legend(loc="upper center", labelcolor=color)
+        if not using_right_y_axis:
+            ax.legend(loc="upper left", labelcolor=color)
+        else:
+            ax.legend(loc="upper center", labelcolor=color)
 
     def histogram_plot(
         self,
