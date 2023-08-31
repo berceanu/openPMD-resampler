@@ -1,14 +1,9 @@
-# Micromamba environment file
-# https://marketplace.visualstudio.com/items?itemName=corker.vscode-micromamba
-
 name: thinningenv
-
 channels:
-  - conda-forge
-
+- conda-forge
 dependencies:
-  - python=3.11.*
-  - openpmd-api=0.15.*
-  - pandas=2.0.*
-  - datashader=0.15.*
-  - matplotlib=3.7.*
+- python=3.11.*
+- openpmd-api=0.15.*
+- pandas=2.0.*
+- datashader=0.15.*
+- matplotlib=3.7.*
