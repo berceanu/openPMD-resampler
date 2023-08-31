@@ -4,6 +4,7 @@ This module provides a class for writing pandas DataFrame to a text file with cu
 """
 
 import pandas as pd
+from opmdtogeant.units import units
 
 
 class DataFrameToFile:
@@ -18,55 +19,42 @@ class DataFrameToFile:
         dataframe : pd.DataFrame
             The pandas DataFrame to be written to a text file.
         """
-        self.dataframe = dataframe
+        self.df = dataframe
+        self.units = units
+        self.include_weights = True
+        self.include_energy = True
 
-    def _create_header(self) -> str:
-        """
-        Private method to create a custom header string from DataFrame column names.
+    def exclude_weights(self):
+        self.include_weights = False
+        return self
 
-        Returns
-        -------
-        str
-            A string that represents the custom header for the text file.
-        """
-        # Hard-coded mapping from dataframe's column names to the desired header labels
-        column_name_mapping = {
-            "position_x_um": "position x [um]",
-            "position_y_um": "position y [um]",
-            "position_z_um": "position z [um]",
-            "momentum_x_mev_c": "momentum x [MeV/c]",
-            "momentum_y_mev_c": "momentum y [MeV/c]",
-            "momentum_z_mev_c": "momentum z [MeV/c]",
-            "weights": "weights",
-            "energy_mev": "energy [MeV]",
-        }
+    def exclude_energy(self):
+        self.include_energy = False
+        return self
 
-        # Create header
-        header = [column_name_mapping[col] for col in self.dataframe.columns]
+    def write_to_file(self, file_path):
+        # Select columns to write based on include_weights and include_energy
+        columns_to_write = self.df.columns.tolist()
+        if not self.include_weights:
+            columns_to_write.remove("weights")
+        if not self.include_energy:
+            columns_to_write.remove("energy_mev")
 
-        # Combine all headers into a single string
-        header_str = "# " + ",".join(header)
-        return header_str
+        # Write header to file
+        with open(file_path, "w") as f:
+            for column in columns_to_write:
+                f.write(f"{column} ({self.units[column]}), ")
+            f.write("\n")
 
-    def write_to_file(self, filename: str) -> None:
-        """
-        Writes the DataFrame to a text file with a custom header.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the text file to be written.
-        """
-        print("Writing dataframe to file. This may take a while...")
-        header = self._create_header()
-
-        # Write DataFrame to file without header
-        self.dataframe.to_csv(
-            filename, sep=",", index=False, header=False, float_format="%.16e"
+        # Append DataFrame to file
+        print("Writing dataframe to file. This may take a while...", end=" ")
+        self.df.to_csv(
+            file_path,
+            columns=columns_to_write,
+            index=False,
+            header=False,
+            sep=",",
+            float_format="%.16e",
+            mode="a",
         )
-
-        # Add custom header to file
-        with open(filename, "r+") as file:
-            content = file.read()
-            file.seek(0, 0)
-            file.write(header.rstrip("\r\n") + "\n" + content)
+        print(f"Wrote {file_path}.")

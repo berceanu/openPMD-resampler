@@ -18,11 +18,6 @@ def main():
     h5_reader = HDF5Reader(h5_path, "e_highGamma")  # e_highGamma or e_all
     df = h5_reader.build_df()
 
-    # Write the dataframe to a file
-    # df_to_file = DataFrameToFile(df)
-    # TODO: uncomment
-    # df_to_file.write_to_file(h5_path.with_suffix(".txt")) # slow
-
     # Create the phase space plots
     phase_space = PhaseSpaceVisualizer(
         dataframe=df,
@@ -39,6 +34,12 @@ def main():
     # df_thin = resampler.simple_thinning(number_of_remaining_particles=10**5)
     # df_thin = resampler.random_weights()
     df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
+
+    # Write the dataframe to a file
+    DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
+        h5_path.with_suffix(".txt")
+    )
+
     print(df_thin.describe())
     print(
         f"The dataset contains {df_thin.shape[0]:,} macroparticles, "
