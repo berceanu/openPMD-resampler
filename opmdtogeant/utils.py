@@ -7,6 +7,17 @@ import tempfile
 from typing import List
 
 from PIL import Image
+import pandas as pd
+import numpy as np
+
+
+def print_dataset_info(df: pd.DataFrame) -> None:
+    print(
+        f"The dataset contains {df.shape[0]:,} macroparticles, "
+        f"corresponding to {int(df['weights'].sum()):,} 'real' electrons."
+    )
+    print("Descriptive statistics of the dataset:")
+    print(df.describe())
 
 
 def unique_filename(suffix: str) -> str:

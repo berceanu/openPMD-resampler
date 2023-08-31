@@ -5,6 +5,7 @@ from opmdtogeant.df_to_txt import DataFrameToFile
 from opmdtogeant.reader import HDF5Reader, electron_mass_MeV_c2
 from opmdtogeant.visualize_phase_space import PhaseSpaceVisualizer
 from opmdtogeant.resampling import ParticleResampler
+from opmdtogeant.utils import print_dataset_info
 
 
 def main():
@@ -31,20 +32,14 @@ def main():
         dataframe=df,
         weight_column="weights",
     )
-    # df_thin = resampler.simple_thinning(number_of_remaining_particles=10**5)
-    # df_thin = resampler.random_weights()
     df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
+    print_dataset_info(df_thin)
 
     # Write the dataframe to a file
     DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
         h5_path.with_suffix(".txt")
     )
 
-    print(df_thin.describe())
-    print(
-        f"The dataset contains {df_thin.shape[0]:,} macroparticles, "
-        f"corresponding to {int(df_thin['weights'].sum()):,} 'real' electrons."
-    )
     phase_space_thin = PhaseSpaceVisualizer(
         dataframe=df_thin,
     )

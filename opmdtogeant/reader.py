@@ -4,6 +4,8 @@ import numpy as np
 import openpmd_api as io
 import pandas as pd
 import scipy.constants as const
+from opmdtogeant.utils import print_dataset_info
+
 
 # Constants
 electron_charge_picocoulombs = const.elementary_charge * 1e12  # electron charge in pC
@@ -214,11 +216,8 @@ class HDF5Reader:
 
     def _print_data_stats(self, df: pd.DataFrame):
         print("The particle bunch is propagating along the z direction.")
-        print(
-            f"The dataset contains {df.shape[0]:,} macroparticles, corresponding to {int(df['weights'].sum()):,} 'real' electrons, with a total charge of {df['weights'].sum() * electron_charge_picocoulombs:.2f} pC."
-        )
-        print("Descriptive statistics of the dataset:")
-        print(df.describe())
+
+        print_dataset_info(df)
 
         weighted_average_energy = np.average(df["energy_mev"], weights=df["weights"])
         print(f"The (weighted) mean energy is {weighted_average_energy:.6e} MeV.")
