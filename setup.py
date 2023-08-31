@@ -1,4 +1,12 @@
+"""
+This is a setup file for the opmdtogeant package.
+"""
+
 from setuptools import setup, find_packages
+
+
+with open("requirements.txt", encoding="utf-8") as f:
+    required = f.read().splitlines()
 
 setup(
     name="opmdtogeant",
@@ -8,9 +16,7 @@ setup(
     author_email="andreicberceanu@gmail.com",
     packages=find_packages(),
     python_requires="==3.11.*",
-    install_requires=[
-        "openpmd-api==0.15.*",
-    ],
+    install_requires=required,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
@@ -18,5 +24,3 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
 )
-
-# TODO: update requirements
