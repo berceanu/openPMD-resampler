@@ -41,10 +41,11 @@ class DataFrameToFile:
             columns_to_write.remove("energy_mev")
 
         # Write header to file
-        with open(file_path, "w") as f:
-            for column in columns_to_write:
-                f.write(f"{column} ({self.units[column]}), ")
-            f.write("\n")
+        with open(file_path, "w", encoding="utf-8") as f:
+            header = ", ".join(
+                f"{column} ({self.units[column]})" for column in columns_to_write
+            )
+            f.write(header + "\n")
 
         # Append DataFrame to file
         print("Writing dataframe to file. This may take a while...", end=" ")
