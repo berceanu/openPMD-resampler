@@ -1,14 +1,22 @@
+"""
+This module provides a command-line interface for reading HDF5 files, 
+visualizing phase space, resampling particles, and writing the results to a text file.
+"""
 import argparse
 from pathlib import Path
 
 from opmdtogeant.df_to_txt import DataFrameToFile
-from opmdtogeant.reader import HDF5Reader, electron_mass_MeV_c2
+from opmdtogeant.reader import HDF5Reader
 from opmdtogeant.visualize_phase_space import PhaseSpaceVisualizer
 from opmdtogeant.resampling import ParticleResampler
 from opmdtogeant.utils import print_dataset_info
 
 
 def main():
+    """
+    Main function to parse command line arguments, read HDF5 files, visualize phase space,
+    resample particles, and write the results to a text file.
+    """
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("h5_path", type=str, help="Path to the HDF5 file")
@@ -27,7 +35,7 @@ def main():
     )
     phase_space.savefig()
 
-    # apply thinning algorithm to df, resulting in df_thin
+    # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(
         dataframe=df,
         weight_column="weights",
@@ -35,17 +43,14 @@ def main():
     df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
     print_dataset_info(df_thin)
 
-    # Write the dataframe to a file
+    # Visualize both dataframes in order to see effects of thining
+    phase_space_thin = PhaseSpaceVisualizer(df_thin)
+    phase_space.save_comparative_fig(phase_space_thin)
+
+    # Write the reduced dataframe to a file
     DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
         h5_path.with_suffix(".txt")
     )
-
-    phase_space_thin = PhaseSpaceVisualizer(
-        dataframe=df_thin,
-    )
-
-    # visualize both dataframes in order to see effects of thining
-    phase_space.save_comparative_fig(phase_space_thin)
 
 
 if __name__ == "__main__":
