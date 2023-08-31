@@ -24,7 +24,7 @@ def main():
     h5_path = Path(args.h5_path)
 
     # Create the dataframe
-    h5_reader = HDF5Reader(h5_path, "e_highGamma")  # e_highGamma or e_all
+    h5_reader = HDF5Reader(h5_path, "e_highGamma")  # "e_highGamma" or "e_all"
     df = h5_reader.build_df()
 
     # Create the phase space plots
