@@ -51,7 +51,7 @@ micromamba env remove -n opmdresamplerenv
 
 For a computational estimate, here is a quote from Ref. [1]:
 
-> The computer system for `GEANT4` simulation is made up of Intel Quard-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles.
+> The computer system for `GEANT4` simulation is made up of Intel Quad-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles.
 
 
 ## References
@@ -59,3 +59,11 @@ For a computational estimate, here is a quote from Ref. [1]:
 [1] Park, Seong Hee, et al. "A simulation for the optimization of bremsstrahlung radiation for nuclear applications using laser accelerated electron beam." Proceedings of FEL2010, Malmö, 2010. [Link](https://accelconf.web.cern.ch/FEL2010/papers/thpb13.pdf)
 
 [2] Muraviev, A. et al. "Strategies for particle resampling in PIC simulations." Comput. Phys. Commun. 262, 107826 (2021). [Link](https://doi.org/10.1016/j.cpc.2021.107826)
+
+## Acknowledgements
+
+We would like to acknowledge useful discussions with Dr. Richard Pausch.
+
+## Similar Projects
+
+- [Particle Reduction](https://github.com/ComputationalRadiationPhysics/particle_reduction)
