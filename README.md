@@ -19,7 +19,8 @@ For an overview of the main functionality, see the [`usage.py`](./usage.py) exam
 $ python usage.py <path_to_your_pic_output_file>
 ```
 
-If you need a sample PIC output file, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
+Replace descriptions between chevrons `<>` by relevant values, in this case the path to the PIC output file.
+If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
 The runtime is under one minute on an *M1 MacBook Air* and the memory footprint is ~1 GB RAM.
 
