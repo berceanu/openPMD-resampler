@@ -7,6 +7,7 @@
 - [x] implement comparison before/after thinning plot
 - [x] implement trivial thinning, setting all weights to 1
 - [x] implement globalLev
+- [ ] update README.md
 - [ ] refactor classes
 
 - [ ] delete this file
