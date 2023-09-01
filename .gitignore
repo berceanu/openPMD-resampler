@@ -161,7 +161,5 @@ cython_debug/
 
 # openPMD source files
 h5/
-clipboard.py
 *.pkl
 *.csv
-notepad.py
