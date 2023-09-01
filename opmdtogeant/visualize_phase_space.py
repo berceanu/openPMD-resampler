@@ -70,7 +70,7 @@ class PhaseSpaceVisualizer:
         self._vmax = value
 
     def save_comparative_fig(
-        self, other, output_filename: str = "comparative_phase_space.png"
+        self, other, output_filename: str = "plots/comparative_phase_space.png"
     ):
         if not isinstance(other, PhaseSpaceVisualizer):
             raise TypeError("Both objects must be instances of PhaseSpaceVisualizer")
@@ -93,7 +93,7 @@ class PhaseSpaceVisualizer:
         for fname in filenames:
             os.remove(fname)
 
-    def savefig(self, output_filename: str = "phase_space.png"):
+    def savefig(self, output_filename: str = "plots/phase_space.png"):
         filenames = [self.plot_bunch(), self.plot_histograms(), self.plot_emittance()]
         combine_images(filenames, output_filename)
         for fname in filenames:
@@ -252,16 +252,3 @@ class PhaseSpaceVisualizer:
         fig.create_colorbar(self.norm)
         fig.save_figure(output_filename)
         return output_filename
-
-
-#     def savefig(self, output_filename: str = "comparative_phase_space.png"):
-#         # plot the electron bunch from the first dataframe
-#         # plot the electron bunch from the second dataframe
-
-#         # plot the combined histograms, ie both dataframes on the same plot
-
-#         # plot the emittance from the first dataframe
-#         # plot the emittance from the second dataframe
-
-#         # combine all the PNGs into the final PNG
-#         # self.combine_pngs(output_filename)
