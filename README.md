@@ -5,8 +5,6 @@ Resampling tools for openPMD PIC data
 
 We often need to post-process the particle data from a PIC code, and pass it to additional tracking codes like [`GEANT`](#geant4), `GPT` or `SIMION`. The original dataset can correspond to several billion particles, so one needs to reduce it to a manageable size, while conserving the main features of the underlying physics. This repository implements several resampling methods from the literature [2], as well as a comprehensive suite of high-resolution visualization tools.
 
-
-
 ## Installation
 
 ```shell
@@ -15,7 +13,7 @@ pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresamp
 
 ## Usage
 
-For an overview of the functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md). You can run the script with the following command:
+For an overview of the functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md):
 
 ```bash
 python usage.py <path_to_your_pic_output_file>
