@@ -1,10 +1,10 @@
-# openPMD-converter-Geant
-Converter between openPMD and Geant
+# openPMD-Resampler
+Resampling tools for openPMD PIC data
 
 ## Installation
 
 ```shell
-$ pip install git+https://github.com/berceanu/openPMD-converter-Geant.git#egg=opmdtogeant
+$ pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresampler
 ```
 
 ## Usage
@@ -17,12 +17,16 @@ You can run the script with the following command:
 python usage.py <path_to_your_hdf5_file>
 ```
 
+[lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5)
+
 This will generate a log file named `output.md` in the current directory. This file contains the results of the script, including any logged messages and links to generated plots.
 
 You can view the `usage.py` script [here](./usage.py), and an example `output.md` file [here](./output.md).
 
 
 ## Development
+
+[requirements.txt](requirements.txt)
 
 After installing [micromamba](https://mamba.readthedocs.io/en/latest/installation.html#micromamba), create a new environment via
 

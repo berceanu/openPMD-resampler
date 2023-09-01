@@ -4,8 +4,8 @@ import numpy as np
 import openpmd_api as io
 import pandas as pd
 import scipy.constants as const
-from opmdtogeant.utils import dataset_info
-from opmdtogeant.log import logger
+from opmdresampler.utils import dataset_info
+from opmdresampler.log import logger
 
 
 # Constants

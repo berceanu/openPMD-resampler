@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 from matplotlib.colors import LogNorm
 
-from opmdtogeant.figure_layout import FigureCreator
-from opmdtogeant.utils import combine_images, unique_filename
+from opmdresampler.figure_layout import FigureCreator
+from opmdresampler.utils import combine_images, unique_filename
 
 
 class PhaseSpaceVisualizer:

@@ -4,8 +4,8 @@ This module provides a class for writing pandas DataFrame to a text file with cu
 """
 
 import pandas as pd
-from opmdtogeant.units import units
-from opmdtogeant.log import logger
+from opmdresampler.units import units
+from opmdresampler.log import logger
 
 
 class DataFrameToFile:

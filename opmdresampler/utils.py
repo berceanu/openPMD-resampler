@@ -8,7 +8,7 @@ from typing import List
 import pandas as pd
 from PIL import Image
 
-from opmdtogeant.log import logger
+from opmdresampler.log import logger
 
 
 def format_number(number):

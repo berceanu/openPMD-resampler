@@ -6,12 +6,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from opmdtogeant.df_to_txt import DataFrameToFile
-from opmdtogeant.log import logger
-from opmdtogeant.reader import HDF5Reader
-from opmdtogeant.resampling import ParticleResampler
-from opmdtogeant.utils import dataset_info
-from opmdtogeant.visualize_phase_space import PhaseSpaceVisualizer
+from opmdresampler.df_to_txt import DataFrameToFile
+from opmdresampler.log import logger
+from opmdresampler.reader import HDF5Reader
+from opmdresampler.resampling import ParticleResampler
+from opmdresampler.utils import dataset_info
+from opmdresampler.visualize_phase_space import PhaseSpaceVisualizer
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
     logger.info("This is the output of `%s`\n", command)
 
     # Create the dataframe
-    h5_reader = HDF5Reader(h5_path, "e_all")  # "e_highGamma" or "e_all"
+    h5_reader = HDF5Reader(h5_path, "e_highGamma")  # "e_highGamma" or "e_all"
     df = h5_reader.build_df()
 
     # Create the phase space plots
