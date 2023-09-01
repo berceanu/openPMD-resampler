@@ -31,7 +31,7 @@ def main():
     logger.info("This is the output of `%s`\n", command)
 
     # Create the dataframe
-    h5_reader = HDF5Reader(h5_path, "e_highGamma")  # "e_highGamma" or "e_all"
+    h5_reader = HDF5Reader(h5_path, "e_all")  # "e_highGamma" or "e_all"
     df = h5_reader.build_df()
 
     # Create the phase space plots
