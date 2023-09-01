@@ -37,7 +37,7 @@ def setup_logger(
     # Create handlers
     c_handler = logging.StreamHandler()
     f_handler = logging.FileHandler(log_file)
-    c_handler.setLevel(logging.WARNING)
+    c_handler.setLevel(level)
     f_handler.setLevel(level)
 
     # Create formatters and add it to handlers
