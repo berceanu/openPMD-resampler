@@ -30,6 +30,10 @@ def setup_logger(
     # Remove all handlers if any exist
     custom_logger.handlers = []
 
+    # Remove the log file if it exists
+    if os.path.exists(log_file):
+        os.remove(log_file)
+
     # Create handlers
     c_handler = logging.StreamHandler()
     f_handler = logging.FileHandler(log_file)
