@@ -21,7 +21,7 @@ python usage.py <path_to_your_pic_output_file>
 
 If you need a sample PIC output file, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
-The runtime is under one minute and the memory footprint is ~1 GB.
+The runtime is under one minute on an M1 MacBook Air and the memory footprint is ~1 GB RAM.
 
 ## Development
 
