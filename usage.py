@@ -10,6 +10,7 @@ from opmdtogeant.reader import HDF5Reader
 from opmdtogeant.visualize_phase_space import PhaseSpaceVisualizer
 from opmdtogeant.resampling import ParticleResampler
 from opmdtogeant.utils import print_dataset_info
+from opmdtogeant.log import logger
 
 
 def main():
@@ -22,6 +23,14 @@ def main():
     parser.add_argument("h5_path", type=str, help="Path to the HDF5 file")
     args = parser.parse_args()
     h5_path = Path(args.h5_path)
+
+    # Log some messages
+    logger.info("# Results\n")
+    result = 123  # This would be some result from your script
+    logger.info("Result: %s\n", result)
+    logger.info(
+        '<a href="plots/phase_space.png"><img src="plots/phase_space.png" width="200"></a>\n'
+    )
 
     # Create the dataframe
     h5_reader = HDF5Reader(h5_path, "e_highGamma")  # "e_highGamma" or "e_all"
