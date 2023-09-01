@@ -4,7 +4,8 @@ import numpy as np
 import openpmd_api as io
 import pandas as pd
 import scipy.constants as const
-from opmdtogeant.utils import print_dataset_info
+from opmdtogeant.utils import dataset_info
+from opmdtogeant.log import logger
 
 
 # Constants
@@ -55,7 +56,7 @@ class HDF5Reader:
         :return: DataFrame with position, momentum and weight data
         """
         series = self._open_series()
-        self._print_software_name(series)
+        self._software_name(series)
         swap_yz = series.software == "PIConGPU"
 
         iteration = self._get_iteration(series)
@@ -79,15 +80,17 @@ class HDF5Reader:
 
         df = self._update_data_frame(df, swap_axes=swap_yz)
 
-        self._print_data_stats(df)
+        self._data_stats(df)
 
         return df
 
     def _open_series(self) -> io.Series:
         return io.Series(self.file_path, io.Access.read_only)
 
-    def _print_software_name(self, series: io.Series):
-        print(f"Data generated using {series.software} {series.software_version}.")
+    def _software_name(self, series: io.Series):
+        logger.info(
+            "Data generated using %s %s.\n", series.software, series.software_version
+        )
 
     def _get_iteration(self, series: io.Series) -> io.Iteration:
         iteration_numbers = tuple(series.iterations)
@@ -96,10 +99,13 @@ class HDF5Reader:
 
         iteration_number = iteration_numbers[0]
         iteration = series.iterations[iteration_number]
-        print(
-            f"{self.file_path} contains iteration {iteration_number}, at {iteration.time * iteration.time_unit_SI * 1e12:.2f} ps."
-        )
 
+        logger.info(
+            "%s contains iteration %s, at %.2f ps.\n",
+            self.file_path,
+            iteration_number,
+            iteration.time * iteration.time_unit_SI * 1e12,
+        )
         return iteration
 
     def _get_particle_data_and_units(
@@ -211,13 +217,15 @@ class HDF5Reader:
             df[[f"{attribute}_y", f"{attribute}_z"]] = df[
                 [f"{attribute}_z", f"{attribute}_y"]
             ]
-        print("Swapping y and z axes.")
+        logger.info("Swapping y and z axes.\n")
         return df
 
-    def _print_data_stats(self, df: pd.DataFrame):
-        print("The particle bunch is propagating along the z direction.")
+    def _data_stats(self, df: pd.DataFrame):
+        logger.info("The particle bunch is propagating along the z direction.\n")
 
-        print_dataset_info(df)
+        dataset_info(df)
 
         weighted_average_energy = np.average(df["energy_mev"], weights=df["weights"])
-        print(f"The (weighted) mean energy is {weighted_average_energy:.6e} MeV.")
+        logger.info(
+            "The (weighted) mean energy is %.6e MeV.\n", weighted_average_energy
+        )

@@ -1,23 +1,30 @@
 """
 This module provides various utility functions.
-# TODO: split into math_utils, img_utils etc
 """
-
+import os
 import tempfile
 from typing import List
 
-from PIL import Image
 import pandas as pd
-import numpy as np
+from PIL import Image
+
+from opmdtogeant.log import logger
 
 
-def print_dataset_info(df: pd.DataFrame) -> None:
-    print(
-        f"The dataset contains {df.shape[0]:,} macroparticles, "
-        f"corresponding to {int(df['weights'].sum()):,} 'real' electrons."
+def format_number(number):
+    return "{:,}".format(number)
+
+
+def dataset_info(df: pd.DataFrame) -> None:
+    logger.info(
+        "The dataset contains %s macroparticles, corresponding to %s 'real' electrons.\n",
+        format_number(df.shape[0]),
+        format_number(int(df["weights"].sum())),
     )
-    print("Descriptive statistics of the dataset:")
-    print(df.describe())
+    logger.info("Descriptive statistics of the dataset:\n")
+    logger.info("```\n")
+    logger.info("%s\n", df.describe())
+    logger.info("```\n")
 
 
 def unique_filename(suffix: str) -> str:
@@ -67,4 +74,12 @@ def combine_images(filenames: List[str], output_filename: str) -> None:
         final_image.paste(image, (0, y_offset))
         y_offset += image.height
 
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+
     final_image.save(output_filename)
+    logger.info("Wrote %s\n", output_filename)
+    logger.info(
+        '<a href="%s"><img src="%s" width="200"></a>\n'
+        % (output_filename, output_filename)
+    )

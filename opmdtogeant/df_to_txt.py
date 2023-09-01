@@ -5,6 +5,7 @@ This module provides a class for writing pandas DataFrame to a text file with cu
 
 import pandas as pd
 from opmdtogeant.units import units
+from opmdtogeant.log import logger
 
 
 class DataFrameToFile:
@@ -48,7 +49,7 @@ class DataFrameToFile:
             f.write(header + "\n")
 
         # Append DataFrame to file
-        print("Writing dataframe to file. This may take a while...", end=" ")
+        logger.info("Writing dataframe to file. This may take a while...\n")
         self.df.to_csv(
             file_path,
             columns=columns_to_write,
@@ -58,4 +59,4 @@ class DataFrameToFile:
             float_format="%.16e",
             mode="a",
         )
-        print(f"Wrote {file_path}.")
+        logger.info("Wrote %s\n", file_path)
