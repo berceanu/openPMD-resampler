@@ -7,6 +7,21 @@ Converter between openPMD and Geant
 $ pip install git+https://github.com/berceanu/openPMD-converter-Geant.git#egg=opmdtogeant
 ```
 
+## Usage
+
+The main functionality of this project is demonstrated in the `usage.py` example script. This script provides a command-line interface for reading HDF5 files, visualizing phase space, resampling particles, and writing the results to a text file.
+
+You can run the script with the following command:
+
+```bash
+python usage.py <path_to_your_hdf5_file>
+```
+
+This will generate a log file named `output.md` in the current directory. This file contains the results of the script, including any logged messages and links to generated plots.
+
+You can view the `usage.py` script [here](./usage.py), and an example `output.md` file [here](./output.md).
+
+
 ## Development
 
 After installing [micromamba](https://mamba.readthedocs.io/en/latest/installation.html#micromamba), create a new environment via
