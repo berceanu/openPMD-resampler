@@ -15,8 +15,8 @@ $ pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresa
 
 For an overview of the main functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md):
 
-```bash
-python usage.py <path_to_your_pic_output_file>
+```console
+$ python usage.py <path_to_your_pic_output_file>
 ```
 
 If you need a sample PIC output file, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
