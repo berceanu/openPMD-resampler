@@ -1,5 +1,5 @@
 # :electron: openPMD-Resampler
-Resampling tools for `openPMDz` PIC data
+Resampling tools for `openPMD` PIC data
 
 ## :bulb: Motivation
 
