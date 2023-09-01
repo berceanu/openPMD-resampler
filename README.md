@@ -3,7 +3,7 @@ Resampling tools for openPMD PIC data
 
 ## Motivation
 
-We often need to post-process the particle data from a PIC simulation, and pass it to additional tracking codes like [`GEANT`](#geant4), [`GPT`](https://www.pulsar.nl/gpt/), [`SIMION`](https://simion.com) or [`Wake-T`](https://github.com/AngelFP/Wake-T). The original dataset can correspond to several billion particles, so one needs to reduce it to a manageable size, while conserving the main features of the underlying physics. This repository implements several resampling methods from the literature [2], as well as a comprehensive suite of high-resolution visualization tools.
+We often need to post-process the particle data from a PIC simulation, and pass it to additional tracking codes like [`GEANT`](#geant4), [`GPT`](https://www.pulsar.nl/gpt/), [`SIMION`](https://simion.com) or [`Wake-T`](https://github.com/AngelFP/Wake-T). The original dataset can correspond to several **billion** particles, so one needs to reduce it to a manageable size, while conserving the main features of the underlying physics. This repository implements several resampling methods from the literature [[2]](#references), as well as a comprehensive suite of high-resolution visualization tools.
 
 ## Installation
 
@@ -40,7 +40,7 @@ Clone the repo and run
 python -m pip install -e .
 ```
 
-To start from scratch, do 
+To start from scratch:
 
 ```shell
 micromamba deactivate
@@ -56,9 +56,9 @@ For a computational estimate, here is a quote from Ref. [1]:
 
 ## References
 
-[1] Park, Seong Hee, et al. "A simulation for the optimization of bremsstrahlung radiation for nuclear applications using laser accelerated electron beam." Proceedings of FEL2010, Malmö, 2010. [Link](https://accelconf.web.cern.ch/FEL2010/papers/thpb13.pdf)
+[1] Park, Seong Hee, et al. "A simulation for the optimization of bremsstrahlung radiation for nuclear applications using laser accelerated electron beam." Proceedings of FEL2010, Malmö, 2010. [PDF](https://accelconf.web.cern.ch/FEL2010/papers/thpb13.pdf)
 
-[2] Muraviev, A. et al. "Strategies for particle resampling in PIC simulations." Comput. Phys. Commun. 262, 107826 (2021). [Link](https://doi.org/10.1016/j.cpc.2021.107826)
+[2] Muraviev, A. et al. "Strategies for particle resampling in PIC simulations." Comput. Phys. Commun. 262, 107826 (2021). [DOI](https://doi.org/10.1016/j.cpc.2021.107826)
 
 ## Acknowledgements
 
