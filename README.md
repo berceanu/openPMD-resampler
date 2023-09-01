@@ -1,28 +1,27 @@
 # openPMD-Resampler
 Resampling tools for openPMD PIC data
 
+## Motivation
+
+We often need to post-process the particle data from a PIC code, and pass it to additional tracking codes like [`GEANT`](#geant4), `GPT` or `SIMION`. The original dataset can correspond to several billion particles, so one needs to reduce it to a manageable size, while conserving the main features of the underlying physics. This repository implements several resampling methods from the literature [2], as well as a comprehensive suite of high-resolution visualization tools.
+
+
+
 ## Installation
 
 ```shell
-$ pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresampler
+pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresampler
 ```
 
 ## Usage
 
-The main functionality of this project is demonstrated in the `usage.py` example script. This script provides a command-line interface for reading HDF5 files, visualizing phase space, resampling particles, and writing the results to a text file.
-
-You can run the script with the following command:
+For an overview of the functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md). You can run the script with the following command:
 
 ```bash
-python usage.py <path_to_your_hdf5_file>
+python usage.py <path_to_your_pic_output_file>
 ```
 
-[lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5)
-
-This will generate a log file named `output.md` in the current directory. This file contains the results of the script, including any logged messages and links to generated plots.
-
-You can view the `usage.py` script [here](./usage.py), and an example `output.md` file [here](./output.md).
-
+If you need a sample PIC output file, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
 ## Development
 
@@ -49,11 +48,12 @@ micromamba deactivate
 micromamba env remove -n opmdresamplerenv
 ```
 
-## Resampling
+## GEANT4
 
-> The computer system for `GEANT4` simulation is made up of Intel Quard-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles. [1]
+For a computational estimate, here is a quote from Ref. [1]:
 
-We would like to implement various particle resampling strategies presented in the literature. [2]
+> The computer system for `GEANT4` simulation is made up of Intel Quard-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles.
+
 
 ## References
 
