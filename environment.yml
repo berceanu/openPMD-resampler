@@ -1,9 +1,8 @@
-name: thinningenv
+name: opmdresamplerenv
 channels:
-- conda-forge
+  - conda-forge
 dependencies:
-- python=3.11.*
-- openpmd-api=0.15.*
-- pandas=2.0.*
-- datashader=0.15.*
-- matplotlib=3.7.*
+  - python=3.11.*
+  - pip
+  - pip:
+    - -r ./requirements.txt

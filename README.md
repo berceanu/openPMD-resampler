@@ -26,22 +26,27 @@ You can view the `usage.py` script [here](./usage.py), and an example `output.md
 
 ## Development
 
-[requirements.txt](requirements.txt)
+All project dependencies are listed in the file [`requirements.txt`](requirements.txt).
+`setup.py` reads them from there, and so does the `conda` environment file `environment.yml`.
 
-After installing [micromamba](https://mamba.readthedocs.io/en/latest/installation.html#micromamba), create a new environment via
+After installing any `conda` Python distribution, for example [`micromamba`](https://mamba.readthedocs.io/en/latest/installation.html#micromamba), create a new environment: 
 
 ```shell
-$ micromamba create -n opmdgeant_env -f requirements.txt -c conda-forge
-$ micromamba activate opmdgeant_env
+micromamba env create -f environment.yml
+micromamba activate opmdresamplerenv
 ```
 
-Afterwards, clone the repo and run `python -m pip install -e .` in the same folder as this `README` file.
-
-To start all over again, do 
+Clone the repository and run 
 
 ```shell
-$ micromamba deactivate
-$ micromamba env remove -n opmdgeant_env`
+python -m pip install -e .
+```
+
+To start from scratch, do 
+
+```shell
+micromamba deactivate
+micromamba env remove -n opmdresamplerenv
 ```
 
 ## Resampling
