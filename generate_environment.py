@@ -9,7 +9,7 @@ with open("requirements.txt", "r", encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
 env = {
-    "name": "thinningenv",
+    "name": "opmdresamplerenv",
     "channels": ["conda-forge"],
     "dependencies": requirements,
 }
