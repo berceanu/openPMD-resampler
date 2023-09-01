@@ -43,6 +43,7 @@ def main():
     phase_space.savefig()
 
     # Apply thinning algorithm to df, resulting in df_thin
+    logger.info("Reducing number of particles.\n")
     resampler = ParticleResampler(
         dataframe=df,
         weight_column="weights",
