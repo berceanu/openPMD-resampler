@@ -22,9 +22,16 @@ $ python usage.py <path_to_your_openPMD_file>
 Replace descriptions between chevrons `<>` by relevant values, in this case the path to the PIC output file.
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
-The code works with any `openPMD`-compatible PIC code, such as `WarpX`, `PIConGPU`, `fbpic`, etc.
+The code works with `openPMD`-compatible PIC codes, such as `WarpX`, `PIConGPU`, `fbpic`, etc.
 
 The runtime is under one minute on an *M1 MacBook Air* and the memory footprint is ~1 GB RAM.
+
+The output is a CSV text file, of the following form:
+
+```
+position_x_um (μm), position_y_um (μm), position_z_um (μm), momentum_x_mev_c (MeV/c), momentum_y_mev_c (MeV/c), momentum_z_mev_c (MeV/c)
+1.1201412540356980e+01,8.0062201241442832e-01,3.9551004545608885e+03,-9.1752357482910156e+00,-1.4616233825683594e+01,2.9899465942382812e+02
+```
 
 ## :wrench: Development
 
