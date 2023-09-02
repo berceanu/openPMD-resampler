@@ -3,7 +3,7 @@ Resampling tools for `openPMD` PIC data
 
 ## :bulb: Motivation
 
-We often need to post-process the particle data from a PIC simulation, and pass it to additional tracking codes like [`GEANT`](#atom_symbol-geant4), [`GPT`](https://www.pulsar.nl/gpt/), [`SIMION`](https://simion.com) or [`Wake-T`](https://github.com/AngelFP/Wake-T). The original dataset can correspond to several **billion** particles, so one needs to reduce it to a manageable size, while conserving the main features of the underlying physics. This repository implements several resampling methods from the literature [[2]](#books-references), as well as a comprehensive suite of high-resolution visualization tools.
+We often need to post-process the particle data from a PIC simulation, and pass it to additional tracking codes like [`GEANT`](#atom_symbol-geant4), [`GPT`](https://www.pulsar.nl/gpt/), [`SIMION`](https://simion.com) or [`Wake-T`](https://github.com/AngelFP/Wake-T). The original dataset can correspond to several **billion** particles, so one needs to reduce it to a manageable size, while conserving the main features of the underlying physics. This repository implements several resampling methods from the literature [[2]](#books-references), as well as a comprehensive suite of high-resolution [visualization](./plots/phase_space.png) tools.
 
 ## :rocket: Installation
 
@@ -22,7 +22,7 @@ $ python usage.py <path_to_your_openPMD_file>
 Replace descriptions between chevrons `<>` by relevant values, in this case the path to the PIC output file.
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
-The code works with any `openPMD`-compatible PIC code, such as `WarpX`, `fbpic`, `PIConGPU`, etc.
+The code works with any `openPMD`-compatible PIC code, such as `WarpX`, `PIConGPU`, `fbpic`, etc.
 
 The runtime is under one minute on an *M1 MacBook Air* and the memory footprint is ~1 GB RAM.
 
