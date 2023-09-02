@@ -16,11 +16,13 @@ $ pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresa
 For an overview of the main functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md):
 
 ```console
-$ python usage.py <path_to_your_pic_output_file>
+$ python usage.py <path_to_your_openPMD_file>
 ```
 
 Replace descriptions between chevrons `<>` by relevant values, in this case the path to the PIC output file.
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
+
+The code works with any `openPMD`-compatible PIC code, such as `WarpX`, `fbpic`, `PIConGPU`, etc.
 
 The runtime is under one minute on an *M1 MacBook Air* and the memory footprint is ~1 GB RAM.
 
@@ -63,8 +65,9 @@ For a computational estimate, here is a quote from Ref. [1]:
 
 ## :loudspeaker: Acknowledgements
 
-We would like to acknowledge useful discussions with Dr. Richard Pausch.
+We would like to acknowledge useful discussions with [Richard Pausch (HZDR)](https://github.com/PrometheusPi).
 
 ## :link: Similar Projects
 
 - [Particle Reduction](https://github.com/ComputationalRadiationPhysics/particle_reduction)
+- [hi-𝛘](https://github.com/hi-chi)
