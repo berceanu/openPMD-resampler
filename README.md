@@ -62,7 +62,7 @@ $ micromamba env remove -n opmdresamplerenv
 
 For a computational estimate, here is a quote from Ref. [1]:
 
-> The computer system for `GEANT4` simulation is made up of Intel Quad-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles.
+> The computer system for [`GEANT4`](https://geant4.web.cern.ch) simulation is made up of Intel Quad-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles.
 
 
 ## :books: References
