@@ -70,4 +70,4 @@ We would like to acknowledge useful discussions with [Richard Pausch (HZDR)](htt
 ## :link: Similar Projects
 
 - [Particle Reduction](https://github.com/ComputationalRadiationPhysics/particle_reduction)
-- [hi-𝛘](https://github.com/hi-chi/pyHiChi)
+- [Hi-Chi framework](https://github.com/hi-chi/pyHiChi)
