@@ -1,104 +1,60 @@
+from enum import Enum
 from typing import Tuple
 
 import numpy as np
 import openpmd_api as io
 import pandas as pd
-import scipy.constants as const
-from opmdresampler.utils import dataset_info
+
 from opmdresampler.log import logger
+from opmdresampler.units import constants, conversion_factors, expected_dims
+from opmdresampler.utils import dataset_info
 
 
-# Constants
-electron_charge_picocoulombs = const.elementary_charge * 1e12  # electron charge in pC
-electron_mass_kg = const.m_e  # electron mass in kilograms
-speed_of_light = const.c  # speed of light in m/s
-joule_to_eV = const.electron_volt  # conversion factor from joules to electronvolts
-eV_to_MeV = 1e6  # conversion factor from electronvolts to megaelectronvolts
-meters_to_microns = 1e6  # conversion factor from meters to micrometers
-
-# Electron mass in MeV/c^2
-electron_mass_MeV_c2 = (electron_mass_kg * speed_of_light**2) / (
-    joule_to_eV * eV_to_MeV
-)
-
-# Momentum in kg*m/s
-momentum_kg_m_s = 1  # given
-# Momentum in MeV/c
-momentum_MeV_c = (momentum_kg_m_s * speed_of_light) / (joule_to_eV * eV_to_MeV)
-
-MOMENTUM_CONVERSION_FACTOR = momentum_MeV_c
-POSITION_CONVERSION_FACTOR = meters_to_microns
-EXPECTED_DIMS = {
-    "position": np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-    "positionOffset": np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-    "momentum": np.array([1.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0]),
-    "weights": np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-}
-COMPONENTS = ["x", "y", "z"]
+class Components(Enum):
+    X = "x"
+    Y = "y"
+    Z = "z"
 
 
-# TODO: Refactor this class - channge class/method/module names
-class HDF5Reader:
+class Attributes(Enum):
+    POSITION = "position"
+    POSITION_OFFSET = "positionOffset"
+    MOMENTUM = "momentum"
+
+
+class OpenPMDLoader:
     def __init__(self, file_path: str, particle_species_name: str = "e_all"):
-        """Initialize HDF5Reader with the file path."""
         self.file_path = str(file_path)
         self.particle_species_name = particle_species_name
 
-    def build_df(self) -> pd.DataFrame:
-        """
-        Reads the HDF5 file and returns a DataFrame with position, momentum and weight data.
+        self.series = self.open_series()
+        logger.info(
+            "Data generated using %s %s.\n",
+            self.series.software,
+            self.series.software_version,
+        )
+        self.swap_yz = self.series.software == "PIConGPU"
+        self.iteration = self.get_iteration()
+        self.electrons = self.iteration.particles[self.particle_species_name]
 
-        Example:
-        reader = HDF5Reader("path_to_file.h5")
-        df = reader.build_df()
-        print(df)
+        self.data, self.units = self.get_particle_data_and_units()
 
-        :return: DataFrame with position, momentum and weight data
-        """
-        series = self._open_series()
-        self._software_name(series)
-        swap_yz = series.software == "PIConGPU"
+        self.series.flush()
 
-        iteration = self._get_iteration(series)
-        electrons = iteration.particles[self.particle_species_name]
+        self.rescale_momenta()
 
-        data, units, dimensions = self._get_particle_data_and_units(electrons)
+        del self.series
 
-        self._check_dimensions(dimensions)
-
-        # Flush chunks with actual data and delete series to free memory
-        series.flush()
-
-        macro_weighted = electrons["momentum"].get_attribute("macroWeighted")
-        weighting_power = electrons["momentum"].get_attribute("weightingPower")
-        if (macro_weighted == 1) and (weighting_power != 0):
-            data = self._rescale_momenta(data, weighting_power)
-
-        del series
-
-        df = self._create_dataframe(data, units)
-
-        df = self._update_data_frame(df, swap_axes=swap_yz)
-
-        self._data_stats(df)
-
-        return df
-
-    def _open_series(self) -> io.Series:
+    def open_series(self) -> io.Series:
         return io.Series(self.file_path, io.Access.read_only)
 
-    def _software_name(self, series: io.Series):
-        logger.info(
-            "Data generated using %s %s.\n", series.software, series.software_version
-        )
-
-    def _get_iteration(self, series: io.Series) -> io.Iteration:
-        iteration_numbers = tuple(series.iterations)
+    def get_iteration(self) -> io.Iteration:
+        iteration_numbers = tuple(self.series.iterations)
         if len(iteration_numbers) != 1:
-            raise ValueError(f"{self.file_path} should contain exactly one iteration.")
+            raise ValueError(f"{self.file_path} should contain only one iteration.")
 
         iteration_number = iteration_numbers[0]
-        iteration = series.iterations[iteration_number]
+        iteration = self.series.iterations[iteration_number]
 
         logger.info(
             "%s contains iteration %s, at %.2f ps.\n",
@@ -108,124 +64,148 @@ class HDF5Reader:
         )
         return iteration
 
-    def _get_particle_data_and_units(
-        self, electrons: io.ParticleSpecies
-    ) -> Tuple[dict, dict, dict]:
+    def get_particle_data_and_units(self) -> Tuple[dict, dict]:
         data = {}
         units = {}
         dimensions = {}
 
-        for attribute in ["position", "positionOffset", "momentum"]:
-            for component in COMPONENTS:
-                (
-                    data[f"{attribute}_{component}"],
-                    units[f"{attribute}_{component}"],
-                    dimensions[f"{attribute}_{component}"],
-                ) = self._get_component_data_and_units(electrons[attribute], component)
+        for attribute in Attributes:
+            for component in Components:
+                data[f"{attribute.value}_{component.value}"] = self.electrons[
+                    attribute.value
+                ][component.value].load_chunk()
+                units[f"{attribute.value}_{component.value}"] = self.electrons[
+                    attribute.value
+                ][component.value].unit_SI
+                dimensions[f"{attribute.value}_{component.value}"] = self.electrons[
+                    attribute.value
+                ].unit_dimension
+                np.testing.assert_allclose(
+                    dimensions[f"{attribute.value}_{component.value}"],
+                    getattr(expected_dims, attribute.value),
+                    atol=1e-9,
+                    rtol=0,
+                )
 
-        (
-            data["weights"],
-            units["weights"],
-            dimensions["weights"],
-        ) = self._get_component_data_and_units(
-            electrons["weighting"], io.Record_Component.SCALAR
+        data["weights"] = self.electrons["weighting"][
+            io.Record_Component.SCALAR
+        ].load_chunk()
+        units["weights"] = self.electrons["weighting"][
+            io.Record_Component.SCALAR
+        ].unit_SI
+        dimensions["weights"] = self.electrons["weighting"].unit_dimension
+        np.testing.assert_allclose(
+            dimensions["weights"], expected_dims.weights, atol=1e-9, rtol=0
         )
 
-        return data, units, dimensions
+        return data, units
 
-    @staticmethod
-    def _get_component_data_and_units(
-        data: io.ParticleSpecies, component: str
-    ) -> Tuple[np.ndarray, float, np.ndarray]:
-        """
-        Get data chunk, unit and unit dimension for the given component.
+    def rescale_momenta(self):
+        macro_weighted = self.electrons["momentum"].get_attribute("macroWeighted")
+        weighting_power = self.electrons["momentum"].get_attribute("weightingPower")
+        if (macro_weighted == 1) and (weighting_power != 0):
+            for component in Components:
+                self.data[f"momentum_{component.value}"] *= self.data["weights"] ** (
+                    -weighting_power
+                )
 
-        :param data: particle species data
-        :param component: the component ("x", "y", "z")
-        :return: data chunk, unit and unit dimension
-        """
-        component_data = data[component]
-        return component_data.load_chunk(), component_data.unit_SI, data.unit_dimension
 
-    def _check_dimensions(self, dimensions: dict):
-        for key, dimension in dimensions.items():
-            attribute = key.split("_")[0]
-            self._assert_dimension_close(dimension, EXPECTED_DIMS[attribute])
+class DataFrameCreator:
+    def __init__(self, data: dict, units: dict):
+        self.data = data
+        self.units = units
+        self.df = pd.DataFrame(self.data)
+        self.convert_to_SI()
 
-    @staticmethod
-    def _assert_dimension_close(actual: np.ndarray, expected: np.ndarray):
-        np.testing.assert_allclose(actual, expected, atol=1e-9, rtol=0)
+    def convert_to_SI(self):
+        for column_name, unit_SI in self.units.items():
+            self.df[column_name] *= unit_SI
 
-    def _rescale_momenta(self, data: dict, weighting_power: float) -> dict:
-        for component in COMPONENTS:
-            data[f"momentum_{component}"] *= data["weights"] ** (-weighting_power)
-        return data
 
-    def _create_dataframe(self, data: dict, units: dict) -> pd.DataFrame:
-        df = pd.DataFrame(data)
-        # convert all columns to SI units
-        for column, unit in units.items():
-            df[column] *= unit
-        return df
+class DataFrameUpdater:
+    def __init__(self, df: pd.DataFrame, swap_yz: bool):
+        self.df = df
+        self.add_position_offsets()
+        if swap_yz:
+            self.swap_yz_axes()
+        self.convert_to_nuclear_units()
+        self.add_energy_column()
 
-    @staticmethod
-    def _update_data_frame(df: pd.DataFrame, swap_axes: bool) -> pd.DataFrame:
-        df = HDF5Reader._add_offsets_to_positions(df)
-        df = HDF5Reader._swap_yz_axes(df) if swap_axes else df
-        df = HDF5Reader._convert_position_units(df)
-        df = HDF5Reader._convert_momentum_units(df)
-        df = HDF5Reader._add_energy_column(df)
-        return df
-
-    @staticmethod
-    def _add_energy_column(df: pd.DataFrame) -> pd.DataFrame:
-        df["energy_mev"] = np.sqrt(
-            df["momentum_x_mev_c"] ** 2
-            + df["momentum_y_mev_c"] ** 2
-            + df["momentum_z_mev_c"] ** 2
-            + electron_mass_MeV_c2**2
-        )
-        return df
-
-    @staticmethod
-    def _add_offsets_to_positions(df: pd.DataFrame) -> pd.DataFrame:
-        for component in COMPONENTS:
-            df[f"position_{component}"] += df[f"positionOffset_{component}"]
-        return df.drop(
-            columns=[f"positionOffset_{component}" for component in COMPONENTS]
+    def add_position_offsets(self):
+        for component in Components:
+            self.df[f"position_{component.value}"] += self.df[
+                f"positionOffset_{component.value}"
+            ]
+        self.df.drop(
+            columns=[f"positionOffset_{component.value}" for component in Components],
+            inplace=True,
         )
 
-    @staticmethod
-    def _convert_position_units(df: pd.DataFrame) -> pd.DataFrame:
-        new_column_names = {}
-        for component in COMPONENTS:
-            df[f"position_{component}"] *= POSITION_CONVERSION_FACTOR
-            new_column_names[f"position_{component}"] = f"position_{component}_um"
-        return df.rename(columns=new_column_names)
-
-    @staticmethod
-    def _convert_momentum_units(df: pd.DataFrame) -> pd.DataFrame:
-        new_column_names = {}
-        for component in COMPONENTS:
-            df[f"momentum_{component}"] *= MOMENTUM_CONVERSION_FACTOR
-            new_column_names[f"momentum_{component}"] = f"momentum_{component}_mev_c"
-        return df.rename(columns=new_column_names)
-
-    @staticmethod
-    def _swap_yz_axes(df: pd.DataFrame) -> pd.DataFrame:
-        for attribute in ["position", "momentum"]:
-            df[[f"{attribute}_y", f"{attribute}_z"]] = df[
-                [f"{attribute}_z", f"{attribute}_y"]
+    def swap_yz_axes(self):
+        for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
+            self.df[[f"{attribute.value}_y", f"{attribute.value}_z"]] = self.df[
+                [f"{attribute.value}_z", f"{attribute.value}_y"]
             ]
         logger.info("Swapping y and z axes.\n")
-        return df
 
-    def _data_stats(self, df: pd.DataFrame):
+    def convert_to_nuclear_units(self):
+        new_column_suffixes = {
+            Attributes.POSITION.value: "um",
+            Attributes.MOMENTUM.value: "mev_c",
+        }
+        new_column_names = {}
+        for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
+            for component in Components:
+                self.df[f"{attribute.value}_{component.value}"] *= getattr(
+                    conversion_factors, attribute.value
+                )
+                new_column_names[
+                    f"{attribute.value}_{component.value}"
+                ] = f"{attribute.value}_{component.value}_{new_column_suffixes[attribute.value]}"
+
+        self.df.rename(columns=new_column_names, inplace=True)
+
+    def add_energy_column(self):
+        self.df["energy_mev"] = np.sqrt(
+            self.df["momentum_x_mev_c"] ** 2
+            + self.df["momentum_y_mev_c"] ** 2
+            + self.df["momentum_z_mev_c"] ** 2
+            + constants.electron_mass_mev_c2**2
+        )
+
+
+class DataAnalyzer:
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
+        self.data_stats()
+
+    def data_stats(self):
         logger.info("The particle bunch is propagating along the z direction.\n")
 
-        dataset_info(df)
+        dataset_info(self.df)
 
-        weighted_average_energy = np.average(df["energy_mev"], weights=df["weights"])
+        weighted_average_energy = np.average(
+            self.df["energy_mev"], weights=self.df["weights"]
+        )
         logger.info(
             "The (weighted) mean energy is %.6e MeV.\n", weighted_average_energy
         )
+
+
+class ParticleDataReader:
+    def __init__(self, file_path: str, particle_species_name: str = "e_all"):
+        self.loader = OpenPMDLoader(file_path, particle_species_name)
+        self.creator = DataFrameCreator(self.loader.data, self.loader.units)
+        self.updater = DataFrameUpdater(self.creator.df, swap_yz=self.loader.swap_yz)
+        self.analyzer = DataAnalyzer(self.updater.df)
+
+    @classmethod
+    def from_file(
+        cls, file_path: str, particle_species_name: str = "e_all"
+    ) -> pd.DataFrame:
+        reader = cls(file_path, particle_species_name)
+        return reader.df
+
+    @property
+    def df(self):
+        return self.analyzer.df
