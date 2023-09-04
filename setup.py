@@ -9,6 +9,7 @@ with open("requirements.txt", encoding="utf-8") as f:
     required = f.read().splitlines()
 
 # TODO: bump up version number to 0.2.0 and upgrade status to beta
+# TODO: add project to https://github.com/openPMD/openPMD-projects
 setup(
     name="opmdresampler",
     version="0.1.0",
