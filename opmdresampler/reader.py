@@ -101,13 +101,17 @@ class OpenPMDLoader:
         return data, units
 
     def rescale_momenta(self):
-        macro_weighted = self.electrons["momentum"].get_attribute("macroWeighted")
-        weighting_power = self.electrons["momentum"].get_attribute("weightingPower")
+        macro_weighted = self.electrons[f"{Attributes.MOMENTUM.value}"].get_attribute(
+            "macroWeighted"
+        )
+        weighting_power = self.electrons[f"{Attributes.MOMENTUM.value}"].get_attribute(
+            "weightingPower"
+        )
         if (macro_weighted == 1) and (weighting_power != 0):
             for component in Components:
-                self.data[f"momentum_{component.value}"] *= self.data["weights"] ** (
-                    -weighting_power
-                )
+                self.data[
+                    f"{Attributes.MOMENTUM.value}_{component.value}"
+                ] *= self.data["weights"] ** (-weighting_power)
 
 
 class DataFrameCreator:
@@ -125,19 +129,22 @@ class DataFrameCreator:
 class DataFrameUpdater:
     def __init__(self, df: pd.DataFrame, swap_yz: bool):
         self.df = df
-        self.add_position_offsets()
+        self.add_offsets()
         if swap_yz:
             self.swap_yz_axes()
         self.convert_to_nuclear_units()
         self.add_energy_column()
 
-    def add_position_offsets(self):
+    def add_offsets(self):
         for component in Components:
-            self.df[f"position_{component.value}"] += self.df[
-                f"positionOffset_{component.value}"
+            self.df[f"{Attributes.POSITION.value}_{component.value}"] += self.df[
+                f"{Attributes.POSITION_OFFSET.value}_{component.value}"
             ]
         self.df.drop(
-            columns=[f"positionOffset_{component.value}" for component in Components],
+            columns=[
+                f"{Attributes.POSITION_OFFSET.value}_{component.value}"
+                for component in Components
+            ],
             inplace=True,
         )
 

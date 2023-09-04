@@ -16,18 +16,15 @@ class Units(Enum):
 
 
 units = {
-    "position_x_um": Units.POSITION,
-    "position_y_um": Units.POSITION,
-    "position_z_um": Units.POSITION,
-    "momentum_x_mev_c": Units.MOMENTUM,
-    "momentum_y_mev_c": Units.MOMENTUM,
-    "momentum_z_mev_c": Units.MOMENTUM,
-    "weights": Units.WEIGHTS,
-    "energy_mev": Units.ENERGY,
+    "position_x_um": Units.POSITION.value,
+    "position_y_um": Units.POSITION.value,
+    "position_z_um": Units.POSITION.value,
+    "momentum_x_mev_c": Units.MOMENTUM.value,
+    "momentum_y_mev_c": Units.MOMENTUM.value,
+    "momentum_z_mev_c": Units.MOMENTUM.value,
+    "weights": Units.WEIGHTS.value,
+    "energy_mev": Units.ENERGY.value,
 }
-
-from dataclasses import dataclass, field
-import numpy as np
 
 
 @dataclass(frozen=True)
