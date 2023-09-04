@@ -1,5 +1,5 @@
 """
-This module provides a command-line interface for reading HDF5 files, 
+This module provides a command-line interface for reading OpenPMD files, 
 visualizing phase space, resampling particles, and writing the results to a text file.
 """
 import argparse
@@ -15,15 +15,11 @@ from opmdresampler.visualize_phase_space import PhaseSpaceVisualizer
 
 
 def main():
-    """
-    Main function to parse command line arguments, read HDF5 files, visualize phase space,
-    resample particles, and write the results to a text file.
-    """
     # Parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("h5_path", type=str, help="Path to the HDF5 file")
+    parser.add_argument("opmd_path", type=str, help="Path to the OpenPMD file")
     args = parser.parse_args()
-    h5_path = Path(args.h5_path)
+    opmd_path = Path(args.opmd_path)
 
     # Log the command used to run the script
     command = " ".join(sys.argv)
@@ -31,7 +27,7 @@ def main():
     logger.info("This is the output of `%s`\n", command)
 
     # Create the dataframe
-    df = ParticleDataReader.from_file(h5_path, "e_highGamma")
+    df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_highGamma")
 
     # Create the phase space plots
     phase_space = PhaseSpaceVisualizer(
@@ -56,7 +52,7 @@ def main():
 
     # Write the reduced dataframe to a file
     DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
-        h5_path.with_suffix(".txt")
+        opmd_path.with_suffix(".txt")
     )
 
 
