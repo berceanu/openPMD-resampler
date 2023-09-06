@@ -1,91 +1,67 @@
 from abc import ABC, abstractmethod
+from typing import Callable
 
 import datashader as ds
-import matplotlib.colors as mcolors
 from datashader.mpl_ext import dsshow
 
-from opmdresampler.utils import customize_tick_labels
+from opmdresampler.plot_utils import PURPLE_RABBIT, customize_tick_labels
 
 
-def generate_custom_colormap(colors: list):
-    """
-    Generate a custom colormap from a given list of colors.
+class DataShaderPlot(ABC):
+    cmap = PURPLE_RABBIT
+    weight_col = "weights"
 
-    :param colors: List of colors.
-    :return: matplotlib colormap.
-    """
-    positions = [i / (len(colors) - 1) for i in range(len(colors))]
-    return mcolors.LinearSegmentedColormap.from_list(
-        "custom", list(zip(positions, colors))
-    )
-
-
-COLORS = ["black", "darkblue", "lightblue", "purple", "yellow"]
-PURPLE_RABBIT = generate_custom_colormap(COLORS)
-
-
-class DataShaderPlotStrategy(ABC):
-    def __init__(self) -> None:
+    def __init__(self, ax, df, col_x, col_y, x_label, y_label) -> None:
+        self.ax = ax
+        self.df = df
+        self.col_x = col_x
+        self.col_y = col_y
+        self.x_label = x_label
+        self.y_label = y_label
         self.norm = "log"
-        self.cmap = PURPLE_RABBIT
-        self.weight_col = "weights"
 
-    def set_norm(self, norm):
-        self.norm = norm
-
-    def set_cmap(self, cmap):
-        self.cmap = cmap
-
-    def set_weight_col(self, weight_col):
-        self.weight_col = weight_col
+    def default_plot_styling(self):
+        return self.standard_plot_styling
 
     @abstractmethod
-    def plot(self, ax, df, col_x, col_y):
+    def plot(self):
         """
         Abstract method for plotting data.
-
-        :param ax: matplotlib axes object to draw the plot on.
-        :param df: pandas DataFrame containing the data to plot.
-        :param col_x: Name of the column in df to use for the x-axis.
-        :param col_y: Name of the column in df to use for the y-axis.
         """
 
-    def add_colorbar(self, ax, mappable, cbar_label):
-        cbar = ax.figure.colorbar(mappable, ax=ax, label=cbar_label)
+    def add_colorbar(self, mappable, cbar_label):
+        cbar = self.ax.figure.colorbar(mappable, ax=self.ax, label=cbar_label)
         return cbar
 
-    def apply_plot_styling(self, ax, x_label, y_label):
-        ax.set_xlabel(x_label)
-        ax.set_ylabel(y_label, labelpad=-2)
-        customize_tick_labels(ax)
+    def standard_plot_styling(self):
+        self.ax.set_xlabel(self.x_label)
+        self.ax.set_ylabel(self.y_label, labelpad=-2)
+        customize_tick_labels(self.ax)
 
     def create_plot(
         self,
-        df,
-        col_x,
-        col_y,
-        ax,
-        x_label,
-        y_label,
+        plot_styling: Callable = None,
         add_cbar=True,
         cbar_label="Number of 'real' electrons",
     ):
-        mappable = self.plot(ax, df, col_x, col_y)
-        self.apply_plot_styling(ax, x_label, y_label)
+        if plot_styling is None:
+            plot_styling = self.default_plot_styling()
+        mappable = self.plot()
+        plot_styling()
         if add_cbar:
-            self.add_colorbar(ax, mappable, cbar_label)
-        return ax
+            self.add_colorbar(mappable, cbar_label)
+        return self.ax
 
 
-class StandardDataShaderPlot(DataShaderPlotStrategy):
-    def plot(self, ax, df, col_x, col_y):
+class StandardDataShaderPlot(DataShaderPlot):
+    def plot(self):
         mappable = dsshow(
-            df,
-            ds.Point(col_x, col_y),
+            self.df,
+            ds.Point(self.col_x, self.col_y),
             ds.sum(self.weight_col),
             norm=self.norm,
             cmap=self.cmap,
             aspect="auto",
-            ax=ax,
+            ax=self.ax,
         )
         return mappable
