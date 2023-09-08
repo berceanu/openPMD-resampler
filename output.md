@@ -1,7 +1,3 @@
-## Output
-
-This is the output of `usage.py h5/lwfa.h5`
-
 Data generated using PIConGPU 0.5.0.
 
 h5/lwfa.h5 contains iteration 126175, at 13.33 ps.
@@ -10,7 +6,7 @@ Swapping y and z axes.
 
 The particle bunch is propagating along the z direction.
 
-The dataset contains 3,356,185 macroparticles, corresponding to 13,369,720,832 'real' electrons.
+The dataset contains 3,356,185 macroparticles, corresponding to 13,369,720,832 'real' electrons, with a total charge of 2142.07 pC.
 
 Descriptive statistics of the dataset:
 
@@ -32,11 +28,10 @@ The (weighted) mean energy is 2.485225e+02 MeV.
 
 Wrote plots/phase_space.png
 
-<a href="plots/phase_space.png"><img src="plots/phase_space.png" width="200"></a>
-
+<function combine_images.<locals>.<lambda> at 0x148fef7e0>
 Reducing number of particles.
 
-The dataset contains 1,680,082 macroparticles, corresponding to 1,680,082 'real' electrons.
+The dataset contains 1,680,082 macroparticles, corresponding to 1,680,082 'real' electrons, with a total charge of 0.27 pC.
 
 Descriptive statistics of the dataset:
 
@@ -56,8 +51,7 @@ max     7.909510e+01   7.783379e+01   3.968009e+03      2.320828e+01      2.2287
 
 Wrote plots/comparative_phase_space.png
 
-<a href="plots/comparative_phase_space.png"><img src="plots/comparative_phase_space.png" width="200"></a>
-
+<function combine_images.<locals>.<lambda> at 0x1493ca480>
 Writing dataframe to file. This may take a while...
 
 Wrote h5/lwfa.txt
