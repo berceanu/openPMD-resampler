@@ -3,11 +3,9 @@ This module provides a command-line interface for reading OpenPMD files,
 visualizing phase space, resampling particles, and writing the results to a text file.
 """
 import argparse
-import sys
 from pathlib import Path
 
 from opmdresampler.df_to_txt import DataFrameToFile
-from opmdresampler.log import logger
 from opmdresampler.reader import ParticleDataReader
 from opmdresampler.resampling import ParticleResampler
 from opmdresampler.visualize_phase_space import PhaseSpaceVisualizer
@@ -19,12 +17,6 @@ def main():
     parser.add_argument("opmd_path", type=str, help="Path to the OpenPMD file")
     args = parser.parse_args()
     opmd_path = Path(args.opmd_path)
-
-    # Log the command used to run the script
-    command = " ".join(sys.argv)
-    logger.info("## Output\n")
-    logger.info("This is the output of `%s`\n", command)
-
     ###############################
 
     # Create the dataframe
