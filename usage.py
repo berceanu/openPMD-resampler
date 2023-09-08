@@ -10,7 +10,6 @@ from opmdresampler.df_to_txt import DataFrameToFile
 from opmdresampler.log import logger
 from opmdresampler.reader import ParticleDataReader
 from opmdresampler.resampling import ParticleResampler
-from opmdresampler.utils import dataset_info
 from opmdresampler.visualize_phase_space import PhaseSpaceVisualizer
 
 
@@ -26,29 +25,23 @@ def main():
     logger.info("## Output\n")
     logger.info("This is the output of `%s`\n", command)
 
+    ###############################
+
     # Create the dataframe
     df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_highGamma")
 
     # Create the phase space plots
-    phase_space = PhaseSpaceVisualizer(
-        dataframe=df,
-        weight_column="weights",
-        energy_column="energy_mev",
-    )
-    phase_space.savefig()
+    phase_space = PhaseSpaceVisualizer(df)
+    phase_space.savefig("plots/phase_space.png")
 
     # Apply thinning algorithm to df, resulting in df_thin
-    logger.info("Reducing number of particles.\n")
-    resampler = ParticleResampler(
-        dataframe=df,
-        weight_column="weights",
-    )
+    resampler = ParticleResampler(df)
     df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
-    dataset_info(df_thin)
 
     # Visualize both dataframes in order to see effects of thining
     phase_space_thin = PhaseSpaceVisualizer(df_thin)
-    phase_space.save_comparative_fig(phase_space_thin)
+    phase_space += phase_space_thin
+    phase_space.savefig("plots/comparative_phase_space.png")
 
     # Write the reduced dataframe to a file
     DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
