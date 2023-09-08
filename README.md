@@ -22,7 +22,7 @@ $ python usage.py <path_to_your_openPMD_file>
 Replace descriptions between chevrons `<>` by relevant values, in this case the path to the PIC output file.
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
-The code works with `openPMD`-compatible PIC codes, such as `WarpX`, `PIConGPU`, `fbpic`, etc.
+The code works with `openPMD`-compatible PIC codes, such as [`WarpX`](https://github.com/ECP-WarpX/WarpX), [`PIConGPU`](https://github.com/ComputationalRadiationPhysics/picongpu), [`fbpic`](https://github.com/fbpic/fbpic), etc.
 
 The runtime is under one minute on an *M1 MacBook Air* and the memory footprint is ~1 GB RAM.
 
