@@ -12,6 +12,11 @@ from opmdresampler.log import logger
 from opmdresampler.units import constants
 
 
+def convert_bytes_to_gb(size_in_bytes):
+    """Convert size in bytes to gigabytes (GB)"""
+    return size_in_bytes / (1024.0**3)
+
+
 def thousand_separators(number):
     return f"{number:,}"
 

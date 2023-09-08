@@ -3,9 +3,13 @@ Module: df_to_txt
 This module provides a class for writing pandas DataFrame to a text file with custom headers.
 """
 
+import os
+
 import pandas as pd
-from opmdresampler.units import units
+
 from opmdresampler.log import logger
+from opmdresampler.units import units
+from opmdresampler.utils import convert_bytes_to_gb
 
 
 class DataFrameToFile:
@@ -60,3 +64,8 @@ class DataFrameToFile:
             mode="a",
         )
         logger.info("Wrote %s\n", file_path)
+
+        # Compute and log the file size
+        file_size_bytes = os.path.getsize(file_path)
+        file_size_gb = convert_bytes_to_gb(file_size_bytes)
+        logger.info("Final file size: %.2f GB", file_size_gb)
