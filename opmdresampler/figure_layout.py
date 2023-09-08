@@ -85,11 +85,14 @@ class FigureLayout:
         Parameters
         ----------
         pad : float, optional
-            Padding between the figure edge and the edges of subplots, as a fraction of the font size (default is 3.0)
+            Padding between the figure edge and the edges of subplots,
+            as a fraction of the font size (default is 3.0)
         h_pad : float, optional
-            Height padding between edges of adjacent subplots, as a fraction of the font size (default is 3.0)
+            Height padding between edges of adjacent subplots, as a fraction
+            of the font size (default is 3.0)
         w_pad : float, optional
-            Width padding between edges of adjacent subplots, as a fraction of the font size (default is 3.0)
+            Width padding between edges of adjacent subplots, as a fraction
+            of the font size (default is 3.0)
         """
 
         # Convert pixels to inches for figure size
@@ -100,7 +103,7 @@ class FigureLayout:
         fig = Figure(figsize=(W_in, H_in), dpi=self.dpi)
 
         # Required for drawing onto the figure
-        canvas = FigureCanvasAgg(fig)
+        FigureCanvasAgg(fig)
 
         # Create a grid for the subplots
         nrows = len(self.layout)

@@ -167,11 +167,12 @@ class EqualWeightDistributionPlot(WeightDistributionPlot):
             dN = self.df.shape[0]
             dlnw = 1  # an infinitesimally small value for the natural logarithm of the same weight
 
-            # Plot a single spike. Height is dN/dln(w), which would theoretically be infinity in this case.
+            # Plot a single spike. Height is dN/dln(w),
+            #  which would theoretically be infinity in this case.
             x_coords = [weight_value]
             density = [dN / dlnw]
         else:
-            # If not, fall back to the standard weight distribution plot
+            # If not, fall back to the standard plot
             x_coords, density = super().compute_histogram()
 
         return x_coords, density

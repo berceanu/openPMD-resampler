@@ -12,16 +12,16 @@ from opmdresampler.log import logger
 from opmdresampler.units import constants
 
 
-def format_number(number):
-    return "{:,}".format(number)
+def thousand_separators(number):
+    return f"{number:,}"
 
 
 def dataset_info(df: pd.DataFrame) -> None:
     logger.info(
         "The dataset contains %s macroparticles, corresponding to %s 'real' electrons, "
         "with a total charge of %.2f pC.\n",
-        format_number(df.shape[0]),
-        format_number(int(df["weights"].sum())),
+        thousand_separators(df.shape[0]),
+        thousand_separators(int(df["weights"].sum())),
         int(df["weights"].sum()) * constants.electron_charge_picocoulombs,
     )
     logger.info("Descriptive statistics of the dataset:\n")
@@ -83,6 +83,7 @@ def combine_images(filenames: List[str], output_filename: str) -> None:
     final_image.save(output_filename)
     logger.info("Wrote %s\n", output_filename)
     logger.info(
-        '<a href="%s"><img src="%s" width="200"></a>\n'
-        % (output_filename, output_filename)
+        lambda: '<a href="{filename}"><img src="{filename}" width="200"></a>\n'.format(
+            filename=output_filename
+        )
     )
