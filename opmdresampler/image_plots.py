@@ -9,6 +9,7 @@ from opmdresampler.plot_utils import PURPLE_RABBIT, customize_tick_labels
 
 class DataShaderPlot(ABC):
     cmap = PURPLE_RABBIT
+    norm = "log"
     weight_col = "weights"
 
     def __init__(self, ax, df, col_x, col_y, x_label, y_label) -> None:
@@ -18,7 +19,6 @@ class DataShaderPlot(ABC):
         self.col_y = col_y
         self.x_label = x_label
         self.y_label = y_label
-        self.norm = "log"
 
     def default_plot_styling(self):
         return self.standard_plot_styling
