@@ -9,6 +9,7 @@ import pandas as pd
 from PIL import Image
 
 from opmdresampler.log import logger
+from opmdresampler.units import constants
 
 
 def format_number(number):
@@ -17,9 +18,11 @@ def format_number(number):
 
 def dataset_info(df: pd.DataFrame) -> None:
     logger.info(
-        "The dataset contains %s macroparticles, corresponding to %s 'real' electrons.\n",
+        "The dataset contains %s macroparticles, corresponding to %s 'real' electrons, "
+        "with a total charge of %.2f pC.\n",
         format_number(df.shape[0]),
         format_number(int(df["weights"].sum())),
+        int(df["weights"].sum()) * constants.electron_charge_picocoulombs,
     )
     logger.info("Descriptive statistics of the dataset:\n")
     logger.info("```\n")
