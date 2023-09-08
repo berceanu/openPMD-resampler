@@ -3,6 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 from matplotlib.cm import ScalarMappable
@@ -43,8 +44,10 @@ class MultiplePanelPlotter(ABC):
     @abstractmethod
     def plot_panels(self):
         """
-        Abstract method to plot panels. This method needs to be implemented in each child class.
-        One needs to loop through the position and momentum features and use the plotter on each panel.
+        Abstract method to plot panels.
+        This method needs to be implemented in each child class.
+        One needs to loop through the position and momentum features
+        and use the plotter on each panel.
         """
 
     def create_plot(self):
@@ -144,7 +147,8 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
 
         if len(self.all_plotters) != len(other.all_plotters):
             raise ValueError(
-                "The number of elements in 'self.all_plotters' and 'other.all_plotters' are not equal."
+                "The number of elements in 'self.all_plotters' and "
+                "'other.all_plotters' are not equal."
             )
 
         for self_plotter, other_plotter in zip(self.all_plotters, other.all_plotters):
@@ -320,17 +324,32 @@ class PhaseSpaceVisualizer:
                 f"The two {type(self)} instances do not have the same DataFrame column names."
             )
 
-        # TODO: add plot titles and legend
+        def add_title_and_save_plotter(plotter, title):
+            plot = plotter.create_plot()
+            plot.fig_layout.fig.suptitle(title)
+            return plot.savefig()
+
+        def add_legend_and_save(plot, ax_label, twin_ax_label):
+            last_plotter = plot.all_plotters[-1]
+            ax = last_plotter.ax
+            twin_ax = ax.get_shared_x_axes().get_siblings(ax)[0]
+            ax_color = ax.lines[0].get_color()
+            twin_ax_color = twin_ax.lines[0].get_color()
+            ax_patch = mpatches.Patch(color=ax_color, label=ax_label)
+            twin_ax_patch = mpatches.Patch(color=twin_ax_color, label=twin_ax_label)
+            ax.legend(handles=[ax_patch, twin_ax_patch])
+            return plot.savefig()
+
         self_hist = self.histograms_plotter.create_plot()
         other_hist = other.histograms_plotter.create_plot()
         self_hist += other_hist
 
         self.filenames = [
-            self.bunch_plotter.create_plot().savefig(),
-            other.bunch_plotter.create_plot().savefig(),
-            self_hist.savefig(),
-            self.emittance_plotter.create_plot().savefig(),
-            other.emittance_plotter.create_plot().savefig(),
+            add_title_and_save_plotter(self.bunch_plotter, "Original"),
+            add_title_and_save_plotter(other.bunch_plotter, "Reduced"),
+            add_legend_and_save(self_hist, "Original", "Reduced"),
+            add_title_and_save_plotter(self.emittance_plotter, "Original"),
+            add_title_and_save_plotter(other.emittance_plotter, "Reduced"),
         ]
 
         return self
