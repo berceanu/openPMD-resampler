@@ -1,16 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Callable
+from typing import Callable, Tuple
 
 import numpy as np
 
-from opmdresampler.plot_utils import customize_tick_labels, add_grid
+from opmdresampler.plot_utils import add_grid, customize_tick_labels
 
 
 class HistogramPlot(ABC):
     color = "royalblue"
     bins = 200
     weight_col = "weights"
-    legend_label = None
     x_label = "x"
     y_label = "y"
 
@@ -34,7 +33,6 @@ class HistogramPlot(ABC):
             linewidth=0.4,
             color=self.color,
             markersize=1,
-            label=self.legend_label,
         )
 
     def standard_plot_styling(self):
@@ -64,15 +62,18 @@ class HistogramPlot(ABC):
         return self.ax
 
     def __add__(self, other):
-        if not isinstance(other, self.__class__):
-            raise ValueError(f"Can only add another {self.__class__} instance.")
+        if not isinstance(other, type(self)):
+            raise ValueError(f"Can only add another {type(self)} instance.")
 
-        self.ax.clear()
+        if self.weight_col != other.weight_col:
+            raise ValueError("weight_col attributes are not the same.")
+        if self.x_label != other.x_label:
+            raise ValueError("x_label attributes are not the same.")
+        if self.y_label != other.y_label:
+            raise ValueError("y_label attributes are not the same.")
+
         other.ax = self.ax.twinx()
         other.color = "#FF7F0E"
-
-        # Replot the data from the original instance
-        self.create_plot()
 
         # Plot the data from the other instance on the new axis
         other.create_plot(other.right_axis_plot_styling)
@@ -90,15 +91,6 @@ class HistogramPlot(ABC):
         for obj in (self, other):
             obj.ax.tick_params(axis="y", labelcolor=obj.color)
 
-        # Create a unified legend using the existing legend labels
-        if self.legend_label is not None and other.legend_label is not None:
-            lines = [ax.get_legend_handles_labels()[0] for ax in [self.ax, other.ax]]
-            self.ax.legend(
-                lines[0] + lines[1],
-                (self.legend_label, other.legend_label),
-                loc="best",
-                ncol=2,
-            )
         return self
 
 
@@ -193,7 +185,6 @@ class EqualWeightDistributionPlot(WeightDistributionPlot):
                 width=x_coords[0] * 0.1,
                 color=self.color,
                 log=True,
-                label=self.legend_label,
             )
         else:
             # If not, fall back to the standard plot
