@@ -4,6 +4,9 @@ This module contains various particle resampling strategies for particle in cell
 import numpy as np
 import pandas as pd
 
+from opmdresampler.log import logger
+from opmdresampler.utils import dataset_info
+
 
 class ParticleResampler:
     def __init__(self, dataframe: pd.DataFrame, weight_column: str = "weights"):
@@ -25,22 +28,26 @@ class ParticleResampler:
 
         return self
 
-    def simple_thinning(self, number_of_remaining_particles: int) -> pd.DataFrame:
+    def simple_thinning(self, number_of_remaining_macroparticles: int) -> pd.DataFrame:
+        number_of_remaining_macroparticles = int(number_of_remaining_macroparticles)
+
         random_generator = np.random.default_rng(seed=42)
-        number_of_initial_particles = self.dataframe.shape[0]
+        number_of_initial_macroparticles = self.dataframe.shape[0]
 
         # Generate random indices for deletion
         delete_indices = random_generator.choice(
-            number_of_initial_particles,
-            size=number_of_initial_particles - number_of_remaining_particles,
+            number_of_initial_macroparticles,
+            size=number_of_initial_macroparticles - number_of_remaining_macroparticles,
             replace=False,
         )
 
         # Delete particles and weights at the selected indices
-        self.dataframe = self.dataframe.drop(delete_indices, inplace=True)
+        self.dataframe.drop(delete_indices, inplace=True)
 
         # Calculate new weight coefficient and update weights
-        weight_factor = number_of_initial_particles / number_of_remaining_particles
+        weight_factor = (
+            number_of_initial_macroparticles / number_of_remaining_macroparticles
+        )
         self.dataframe[self.weight_column] *= weight_factor
 
         return self
@@ -71,4 +78,6 @@ class ParticleResampler:
         return self
 
     def finalize(self) -> pd.DataFrame:
+        logger.info("Reducing number of particles.\n")
+        dataset_info(self.dataframe)
         return self.dataframe
