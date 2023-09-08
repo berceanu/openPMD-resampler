@@ -20,7 +20,9 @@ def main():
     ###############################
 
     # Create the dataframe
-    df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_highGamma")
+    df = ParticleDataReader.from_file(
+        opmd_path, particle_species_name="e_highGamma"
+    )  # or "e_all"
 
     # Create the phase space plots
     phase_space = PhaseSpaceVisualizer(df)
