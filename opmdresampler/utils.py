@@ -87,8 +87,8 @@ def combine_images(filenames: List[str], output_filename: str) -> None:
 
     final_image.save(output_filename)
     logger.info("Wrote %s\n", output_filename)
-    logger.info(
-        lambda: '<a href="{filename}"><img src="{filename}" width="200"></a>\n'.format(
-            filename=output_filename
-        )
-    )
+
+    def log_link(filename):
+        logger.info(f'<a href="{filename}"><img src="{filename}" width="200"></a>\n')
+
+    log_link(output_filename)
