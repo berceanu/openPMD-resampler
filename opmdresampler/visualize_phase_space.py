@@ -255,8 +255,10 @@ class PhaseSpaceVisualizer:
         weight_col: str = "weights",
         energy_col: str = "energy_mev",
         energy_label: Optional[str] = "Energy (MeV)",
+        label: Optional[str] = None,
     ):
         self.df = df
+        self.label = label
         self.position_features = ("position_x_um", "position_y_um", "position_z_um")
         self.momentum_features = (
             "momentum_x_mev_c",
@@ -345,11 +347,11 @@ class PhaseSpaceVisualizer:
         self_hist += other_hist
 
         self.filenames = [
-            add_title_and_save_plotter(self.bunch_plotter, "Original"),
-            add_title_and_save_plotter(other.bunch_plotter, "Reduced"),
-            add_legend_and_save(self_hist, "Original", "Reduced"),
-            add_title_and_save_plotter(self.emittance_plotter, "Original"),
-            add_title_and_save_plotter(other.emittance_plotter, "Reduced"),
+            add_title_and_save_plotter(self.bunch_plotter, self.label),
+            add_title_and_save_plotter(other.bunch_plotter, other.label),
+            add_legend_and_save(self_hist, self.label, other.label),
+            add_title_and_save_plotter(self.emittance_plotter, self.label),
+            add_title_and_save_plotter(other.emittance_plotter, other.label),
         ]
 
         return self
