@@ -25,8 +25,7 @@ def main():
     )  # or "e_all"
 
     # Create the phase space plots
-    phase_space = PhaseSpaceVisualizer(df)
-    phase_space.savefig("plots/phase_space.png")
+    phase_space = PhaseSpaceVisualizer(df, label="PIC data")
 
     # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df)
@@ -35,7 +34,7 @@ def main():
     # df_thin = resampler.simple_thinning(10**4).set_weights_to(1).finalize()
 
     # Visualize both dataframes in order to see effects of thining
-    phase_space_thin = PhaseSpaceVisualizer(df_thin)
+    phase_space_thin = PhaseSpaceVisualizer(df_thin, label="Resampled data")
     phase_space += phase_space_thin
     phase_space.savefig("plots/comparative_phase_space.png")
 
