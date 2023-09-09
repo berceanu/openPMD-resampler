@@ -26,9 +26,6 @@ max     7.919274e+01   7.784132e+01   3.968009e+03      2.320828e+01      2.2287
 
 The (weighted) mean energy is 2.485225e+02 MeV.
 
-Wrote plots/phase_space.png
-
-<function combine_images.<locals>.<lambda> at 0x148fef7e0>
 Reducing number of particles.
 
 The dataset contains 1,680,082 macroparticles, corresponding to 1,680,082 'real' electrons, with a total charge of 0.27 pC.
@@ -51,8 +48,10 @@ max     7.909510e+01   7.783379e+01   3.968009e+03      2.320828e+01      2.2287
 
 Wrote plots/comparative_phase_space.png
 
-<function combine_images.<locals>.<lambda> at 0x1493ca480>
+<a href="plots/comparative_phase_space.png"><img src="plots/comparative_phase_space.png" width="200"></a>
+
 Writing dataframe to file. This may take a while...
 
 Wrote h5/lwfa.txt
 
+Final file size: 0.22 GB
