@@ -35,8 +35,8 @@ def main():
 
     # Visualize both dataframes in order to see effects of thining
     phase_space_thin = PhaseSpaceVisualizer(df_thin, label="Resampled data")
-    phase_space += phase_space_thin
-    phase_space.savefig("plots/comparative_phase_space.png")
+    comparative_phase_space = phase_space + phase_space_thin
+    comparative_phase_space.create_plot().savefig("plots/comparative_phase_space.png")
 
     # Write the reduced dataframe to a file
     DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
