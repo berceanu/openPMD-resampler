@@ -10,7 +10,12 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm
 
 from opmdresampler.figure_layout import FigureLayout
-from opmdresampler.histograms import EqualWeightDistributionPlot, StandardHistogramPlot
+from opmdresampler.histograms import (
+    EqualWeightDistributionPlot,
+    StandardHistogramPlot,
+    StandardHistogram,
+    EqualWeightHistogram,
+)
 from opmdresampler.image_plots import StandardDataShaderPlot
 from opmdresampler.plot_utils import PURPLE_RABBIT
 from opmdresampler.utils import combine_images, unique_filename
@@ -19,27 +24,25 @@ from opmdresampler.utils import combine_images, unique_filename
 class MultiplePanelPlotter(ABC):
     layout = None
     weight_col = "weights"
+    position_features = ("position_x_um", "position_y_um", "position_z_um")
+    position_labels = (r"$x$ ($\mu$m)", r"$y$ ($\mu$m)", r"$z$ ($\mu$m)")
+    momentum_features = ("momentum_x_mev_c", "momentum_y_mev_c", "momentum_z_mev_c")
+    momentum_labels = (
+        r"$p_{\mathrm{x}}$ (MeV/c)",
+        r"$p_{\mathrm{y}}$ (MeV/c)",
+        r"$p_{\mathrm{z}}$ (MeV/c)",
+    )
 
     def __init__(
         self,
         df,
-        position_features,
-        position_labels,
-        momentum_features,
-        momentum_labels,
         output_filename=None,
     ):
-        self.fig_layout = None
         self.df = df
-        self.position_features = position_features
-        self.position_labels = position_labels
-        self.momentum_features = momentum_features
-        self.momentum_labels = momentum_labels
-
-        if output_filename is not None:
-            self.output_filename = output_filename
-        else:
-            self.output_filename = unique_filename(".png")
+        self.output_filename = (
+            output_filename if output_filename is not None else unique_filename(".png")
+        )
+        self.fig_layout = FigureLayout(layout=self.layout)
 
     @abstractmethod
     def plot_panels(self):
@@ -51,8 +54,8 @@ class MultiplePanelPlotter(ABC):
         """
 
     def create_plot(self):
-        self.fig_layout = FigureLayout(layout=self.layout)
-        self.plot_panels()
+        if not hasattr(self, "plotters") or not self.plotters:
+            self.plot_panels()
         return self
 
     def savefig(self):
@@ -65,27 +68,19 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
     energy_col = "energy_mev"
     energy_label = "Energy (MeV)"
 
-    def __init__(
-        self,
-        df,
-        position_features,
-        position_labels,
-        momentum_features,
-        momentum_labels,
-        output_filename=None,
-    ):
-        super().__init__(
-            df,
-            position_features,
-            position_labels,
-            momentum_features,
-            momentum_labels,
-            output_filename,
+    def add_legend(self, primary_label, secondary_label):
+        last_plotter = self.plotters[-1]
+        primary_patch = mpatches.Patch(
+            color=last_plotter.primary_color, label=primary_label
         )
-        self.all_plotters = []
+        secondary_patch = mpatches.Patch(
+            color=last_plotter.secondary_color, label=secondary_label
+        )
+        last_plotter.ax.legend(handles=[primary_patch, secondary_patch])
+        return self
 
     def plot_panels(self):
-        self.all_plotters = []
+        self.plotters = []
         # first two rows, 3 columns each
         for row, (feature_set, label_set) in enumerate(
             zip(
@@ -94,26 +89,30 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
             )
         ):
             for col, feature in enumerate(feature_set):
+                y_label = None if col == 0 else ""
                 ax = self.fig_layout.get_ax(row, col)
-                plotter = StandardHistogramPlot(ax, self.df, feature, label_set[col])
-                plotter.weight_col = self.weight_col
-                plotter.create_plot()
-                self.all_plotters.append(plotter)
-                if col != 0:
-                    ax.set_ylabel("")
+                histogram = StandardHistogram(self.df, feature, self.weight_col)
+                plotter = StandardHistogramPlot(histogram, ax, label_set[col], y_label)
+                self.plotters.append(plotter)
 
         # last row, 2 columns
         ax = self.fig_layout.get_ax(2, 0)
-        plotter = EqualWeightDistributionPlot(ax, self.df)
-        plotter.weight_col = self.weight_col
-        plotter.create_plot()
-        self.all_plotters.append(plotter)
+        histogram = EqualWeightHistogram(self.df, self.weight_col)
+        plotter = EqualWeightDistributionPlot(histogram, ax)
+        self.plotters.append(plotter)
 
         ax = self.fig_layout.get_ax(2, 1)
-        plotter = StandardHistogramPlot(ax, self.df, self.energy_col, self.energy_label)
-        plotter.weight_col = self.weight_col
-        plotter.create_plot()
-        self.all_plotters.append(plotter)
+        histogram = StandardHistogram(self.df, self.energy_col, self.weight_col)
+        plotter = StandardHistogramPlot(histogram, ax, self.energy_label)
+        self.plotters.append(plotter)
+
+    def create_plot(self):
+        super().create_plot()
+
+        for plotter in self.plotters:
+            plotter.create_plot()
+
+        return self
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -145,14 +144,20 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
                 f"The two {type(self)} instances do not have equal attributes."
             )
 
-        if len(self.all_plotters) != len(other.all_plotters):
+        # Call plot_panels if plotters are not populated
+        if not hasattr(self, "plotters") or not self.plotters:
+            self.plot_panels()
+        if not hasattr(other, "plotters") or not other.plotters:
+            other.plot_panels()
+
+        if len(self.plotters) != len(other.plotters):
             raise ValueError(
-                "The number of elements in 'self.all_plotters' and "
-                "'other.all_plotters' are not equal."
+                "The number of elements in 'self.plotters' and "
+                "'other.plotters' are not equal."
             )
 
-        for self_plotter, other_plotter in zip(self.all_plotters, other.all_plotters):
-            self_plotter += other_plotter
+        for self_plotter, other_plotter in zip(self.plotters, other.plotters):
+            self_plotter.histogram += other_plotter.histogram
 
         return self
 
@@ -162,9 +167,12 @@ class MultipleImagePlotter(MultiplePanelPlotter):
     cbar_label = "Number of 'real' electrons"
     norm = None
 
+    def add_title(self, title):
+        self.fig_layout.fig.suptitle(title)
+        return self
+
     def compute_vmax(self):
-        std_hist = StandardHistogramPlot(ax=None, df=self.df, col=self.df.columns[0])
-        std_hist.weight_col = self.weight_col
+        std_hist = StandardHistogram(self.df, self.df.columns[0], self.weight_col)
         _, density = std_hist.compute_histogram()
 
         order_of_magnitude = np.floor(np.log10(density.max()))
@@ -252,69 +260,36 @@ class PhaseSpaceVisualizer:
     def __init__(
         self,
         df: pd.DataFrame,
-        weight_col: str = "weights",
-        energy_col: str = "energy_mev",
-        energy_label: Optional[str] = "Energy (MeV)",
         label: Optional[str] = None,
     ):
         self.df = df
         self.label = label
-        self.position_features = ("position_x_um", "position_y_um", "position_z_um")
-        self.momentum_features = (
-            "momentum_x_mev_c",
-            "momentum_y_mev_c",
-            "momentum_z_mev_c",
-        )
-        self.position_labels = (r"$x$ ($\mu$m)", r"$y$ ($\mu$m)", r"$z$ ($\mu$m)")
-        self.momentum_labels = (
-            r"$p_{\mathrm{x}}$ (MeV/c)",
-            r"$p_{\mathrm{y}}$ (MeV/c)",
-            r"$p_{\mathrm{z}}$ (MeV/c)",
-        )
-        self.weight_col = weight_col
-        self.energy_col = energy_col
-        self.energy_label = energy_label
 
-        self.bunch_plotter = BunchPlotter(
-            self.df,
-            self.position_features,
-            self.position_labels,
-            self.momentum_features,
-            self.momentum_labels,
-        )
-        self.bunch_plotter.weight_col = self.weight_col
-        #
-        self.emittance_plotter = EmittancePlotter(
-            self.df,
-            self.position_features,
-            self.position_labels,
-            self.momentum_features,
-            self.momentum_labels,
-        )
-        self.emittance_plotter.weight_col = self.weight_col
-        #
-        self.histograms_plotter = MultipleHistogramPlotter(
-            self.df,
-            self.position_features,
-            self.position_labels,
-            self.momentum_features,
-            self.momentum_labels,
-        )
-        self.histograms_plotter.weight_col = self.weight_col
-        self.histograms_plotter.energy_col = self.energy_col
-        self.histograms_plotter.energy_label = self.energy_label
+        self.bunch_plotter = BunchPlotter(self.df)
+        self.histogram_plotter = MultipleHistogramPlotter(self.df)
+        self.emittance_plotter = EmittancePlotter(self.df)
 
-        self.filenames = [
-            self.bunch_plotter.create_plot().savefig(),
-            self.histograms_plotter.create_plot().savefig(),
-            self.emittance_plotter.create_plot().savefig(),
+        self.plotters = [
+            self.bunch_plotter,
+            self.histogram_plotter,
+            self.emittance_plotter,
         ]
 
+    def create_plot(self):
+        for plotter in self.plotters:
+            plotter.create_plot()
+        return self
+
     def savefig(self, output_filename: str):
+        output_filenames = []
+        for plotter in self.plotters:
+            fname = plotter.savefig()
+            output_filenames.append(fname)
+
         # Combine the plots
-        combine_images(self.filenames, output_filename)
+        combine_images(output_filenames, output_filename)
         # Delete the temporary files
-        for fname in self.filenames:
+        for fname in output_filenames:
             os.remove(fname)
 
     def __add__(self, other):
@@ -326,32 +301,14 @@ class PhaseSpaceVisualizer:
                 f"The two {type(self)} instances do not have the same DataFrame column names."
             )
 
-        def add_title_and_save_plotter(plotter, title):
-            plot = plotter.create_plot()
-            plot.fig_layout.fig.suptitle(title)
-            return plot.savefig()
+        comparative_histogram_plotter = self.histogram_plotter + other.histogram_plotter
 
-        def add_legend_and_save(plot, ax_label, twin_ax_label):
-            last_plotter = plot.all_plotters[-1]
-            ax = last_plotter.ax
-            twin_ax = ax.get_shared_x_axes().get_siblings(ax)[0]
-            ax_color = ax.lines[0].get_color()
-            twin_ax_color = twin_ax.lines[0].get_color()
-            ax_patch = mpatches.Patch(color=ax_color, label=ax_label)
-            twin_ax_patch = mpatches.Patch(color=twin_ax_color, label=twin_ax_label)
-            ax.legend(handles=[ax_patch, twin_ax_patch])
-            return plot.savefig()
-
-        self_hist = self.histograms_plotter.create_plot()
-        other_hist = other.histograms_plotter.create_plot()
-        self_hist += other_hist
-
-        self.filenames = [
-            add_title_and_save_plotter(self.bunch_plotter, self.label),
-            add_title_and_save_plotter(other.bunch_plotter, other.label),
-            add_legend_and_save(self_hist, self.label, other.label),
-            add_title_and_save_plotter(self.emittance_plotter, self.label),
-            add_title_and_save_plotter(other.emittance_plotter, other.label),
+        self.plotters = [
+            self.bunch_plotter.add_title(self.label),
+            other.bunch_plotter.add_title(other.label),
+            comparative_histogram_plotter.add_legend(self.label, other.label),
+            self.emittance_plotter.add_title(self.label),
+            other.emittance_plotter.add_title(other.label),
         ]
 
         return self
