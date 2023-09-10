@@ -163,6 +163,8 @@ class StandardHistogramPlot(HistogramPlot):
 
 
 class WeightHistogram(Histogram):
+    bins = 150
+
     def compute_histogram(self):
         # Define the logarithmic bins
         log_bins = np.logspace(
@@ -205,8 +207,14 @@ class WeightDistributionPlot(HistogramPlot):
         self.ax.set_ylabel(None)
 
     def plot(self, x_coords, density, color):
-        super().plot(x_coords, density, color)
-        self.ax.fill_between(x_coords, 0, density, color=color, alpha=0.3)
+        markerline, stemlines, baseline = self.ax.stem(
+            x_coords,
+            density,
+            linefmt=color,
+            markerfmt=" ",
+            basefmt=" ",
+        )
+        stemlines.set_linewidth(0.4)
 
 
 class EqualWeightHistogram(WeightHistogram):
