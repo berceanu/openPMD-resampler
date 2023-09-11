@@ -155,7 +155,7 @@ class StandardHistogramPlot(HistogramPlot):
 
 
 class WeightHistogram(Histogram):
-    bins = 150
+    bins = 100
 
     def compute_histogram(self):
         # Define the logarithmic bins
