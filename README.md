@@ -71,6 +71,8 @@ For a computational estimate, here is a quote from Ref. [1]:
 
 [2] Muraviev, A. et al. "Strategies for particle resampling in PIC simulations." Comput. Phys. Commun. 262, 107826 (2021). [DOI](https://doi.org/10.1016/j.cpc.2021.107826)
 
+[3] Shimazaki, Hideaki, and Shigeru Shinomoto. "A method for selecting the bin size of a time histogram." Neural computation 19.6, 1503 (2007). [DOI](https://doi.org/10.1162/neco.2007.19.6.1503)
+
 ## :loudspeaker: Acknowledgements
 
 We would like to acknowledge useful discussions with [Richard Pausch (HZDR)](https://github.com/PrometheusPi).
