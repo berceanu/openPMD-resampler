@@ -29,9 +29,12 @@ class OpenPMDLoader:
 
         self.series = self.open_series()
 
-        software_info = self.series.software
-        if hasattr(self.series, "software_version"):
-            software_info += ", version " + self.series.software_version
+        try:
+            software_info = self.series.software
+            if hasattr(self.series, "software_version"):
+                software_info += " version " + self.series.software_version
+        except Exception:
+            pass  # Handle the exception as needed
         logger.info("Data generated using %s.\n", software_info)
 
         self.swap_yz = self.series.software == "PIConGPU"
