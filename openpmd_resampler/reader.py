@@ -28,11 +28,12 @@ class OpenPMDLoader:
         self.particle_species_name = particle_species_name
 
         self.series = self.open_series()
-        logger.info(
-            "Data generated using %s %s.\n",
-            self.series.software,
-            self.series.software_version,
-        )
+
+        software_info = self.series.software
+        if hasattr(self.series, "software_version"):
+            software_info += ", version " + self.series.software_version
+        logger.info("Data generated using %s.\n", software_info)
+
         self.swap_yz = self.series.software == "PIConGPU"
         self.iteration = self.get_iteration()
         self.electrons = self.iteration.particles[self.particle_species_name]
@@ -118,8 +119,15 @@ class DataFrameCreator:
     def __init__(self, data: dict, units: dict):
         self.data = data
         self.units = units
+        self.adjust_array_lengths()
         self.df = pd.DataFrame(self.data)
         self.convert_to_SI()
+
+    def adjust_array_lengths(self):
+        for component in Components:
+            key = f"{Attributes.POSITION_OFFSET.value}_{component.value}"
+            if self.data[key].size == 1:
+                self.data[key] = np.repeat(self.data[key], self.data["weights"].size)
 
     def convert_to_SI(self):
         for column_name, unit_SI in self.units.items():
