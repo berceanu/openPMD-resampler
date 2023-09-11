@@ -126,7 +126,7 @@ class FigureLayout:
 
         return fig, axs
 
-    def savefig(self, filename: str) -> None:
+    def savefig(self, output_filename: str) -> None:
         """
         Save the figure to a file.
 
@@ -136,4 +136,4 @@ class FigureLayout:
             The name of the file to save the figure to
         """
 
-        self.fig.savefig(filename, dpi=self.dpi)
+        self.fig.savefig(output_filename, dpi=self.dpi, transparent=False)
