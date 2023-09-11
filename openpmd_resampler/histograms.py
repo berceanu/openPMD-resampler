@@ -22,7 +22,7 @@ def set_common_x_axis_limits(ax1, ax2):
 
 
 class Histogram(ABC):
-    bins = 400
+    bins = 1000
     weight_col = "weights"
 
     def __init__(
@@ -143,22 +143,14 @@ class StandardHistogramPlot(HistogramPlot):
     y_label = "Number of 'real' electrons"
 
     def plot(self, x_coords, density, color):
-        self.ax.scatter(
-            x_coords,
-            density,
-            s=0.5,
-            c=color,
-            marker="o",
-            alpha=1.0,
-            linewidths=0,
-            edgecolors="none",
-        )
         self.ax.plot(
             x_coords,
             density,
-            linestyle="--",
-            linewidth=0.3,
+            linestyle="none",
+            linewidth=0.0,
             color=color,
+            marker=",",
+            markeredgewidth=0.0,
         )
 
 
