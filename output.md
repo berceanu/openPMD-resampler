@@ -1,4 +1,4 @@
-Data generated using PIConGPU 0.5.0.
+Data generated using PIConGPU version 0.5.0.
 
 h5/lwfa.h5 contains iteration 126175, at 13.33 ps.
 
