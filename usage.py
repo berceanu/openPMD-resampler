@@ -5,10 +5,10 @@ visualizing phase space, resampling particles, and writing the results to a text
 import argparse
 from pathlib import Path
 
-from opmdresampler.df_to_txt import DataFrameToFile
-from opmdresampler.reader import ParticleDataReader
-from opmdresampler.resampling import ParticleResampler
-from opmdresampler.visualize_phase_space import PhaseSpaceVisualizer
+from openpmd_resampler.df_to_txt import DataFrameToFile
+from openpmd_resampler.reader import ParticleDataReader
+from openpmd_resampler.resampling import ParticleResampler
+from openpmd_resampler.visualize_phase_space import PhaseSpaceVisualizer
 
 
 def main():

@@ -15,8 +15,8 @@ def generate_custom_colormap(colors: list):
     )
 
 
-COLORS = ["black", "darkblue", "lightblue", "purple", "yellow"]
-PURPLE_RABBIT = generate_custom_colormap(COLORS)
+color_set = ["black", "darkblue", "lightblue", "purple", "yellow"]
+galactic_spectrum = generate_custom_colormap(color_set)
 
 
 def customize_tick_labels(ax):

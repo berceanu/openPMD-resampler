@@ -8,8 +8,8 @@ from typing import List
 import pandas as pd
 from PIL import Image
 
-from opmdresampler.log import logger
-from opmdresampler.units import constants
+from .log import logger
+from .units import constants
 
 
 def convert_bytes_to_gb(size_in_bytes):
@@ -89,6 +89,6 @@ def combine_images(filenames: List[str], output_filename: str) -> None:
     logger.info("Wrote %s\n", output_filename)
 
     def log_link(filename):
-        logger.info(f'<a href="{filename}"><img src="{filename}" width="200"></a>\n')
+        logger.info('<a href="%s"><img src="%s" width="200"></a>\n', filename, filename)
 
     log_link(output_filename)

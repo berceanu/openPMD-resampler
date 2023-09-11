@@ -1,4 +1,4 @@
-name: opmdresamplerenv
+name: openpmd_resampler_env
 channels:
   - conda-forge
 dependencies:

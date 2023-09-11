@@ -5,9 +5,9 @@ import numpy as np
 import openpmd_api as io
 import pandas as pd
 
-from opmdresampler.log import logger
-from opmdresampler.units import constants, conversion_factors, expected_dims
-from opmdresampler.utils import dataset_info
+from .log import logger
+from .units import constants, conversion_factors, expected_dims
+from .utils import dataset_info
 
 
 class Components(Enum):

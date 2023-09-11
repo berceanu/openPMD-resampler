@@ -8,7 +8,7 @@ We often need to post-process the particle data from a PIC simulation, and pass 
 ## :rocket: Installation
 
 ```console
-$ pip install git+https://github.com/berceanu/openPMD-Resampler.git#egg=opmdresampler
+$ pip install git+https://github.com/berceanu/openPMD-resampler.git#egg=openpmd_resampler
 ```
 
 ## :book: Usage
@@ -42,7 +42,7 @@ After installing your favorite `Python` distribution, for example [`micromamba`]
 
 ```console
 $ micromamba env create -f environment.yml
-$ micromamba activate opmdresamplerenv
+$ micromamba activate openpmd_resampler_env
 ```
 
 Clone the repo and run: 
@@ -55,7 +55,7 @@ To start from scratch:
 
 ```console
 $ micromamba deactivate
-$ micromamba env remove -n opmdresamplerenv
+$ micromamba env remove -n openpmd_resampler_env
 ```
 
 ## :atom_symbol: GEANT4

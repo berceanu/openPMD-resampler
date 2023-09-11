@@ -7,9 +7,9 @@ import os
 
 import pandas as pd
 
-from opmdresampler.log import logger
-from opmdresampler.units import units
-from opmdresampler.utils import convert_bytes_to_gb
+from .log import logger
+from .units import units
+from .utils import convert_bytes_to_gb
 
 
 class DataFrameToFile:

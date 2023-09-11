@@ -3,7 +3,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from opmdresampler.plot_utils import add_grid, customize_tick_labels
+from .plot_utils import add_grid, customize_tick_labels
 
 
 def set_y_axis_tick_color(axes_and_colors):
@@ -207,7 +207,7 @@ class WeightDistributionPlot(HistogramPlot):
         self.ax.set_ylabel(None)
 
     def plot(self, x_coords, density, color):
-        markerline, stemlines, baseline = self.ax.stem(
+        _, stemlines, _ = self.ax.stem(
             x_coords,
             density,
             linefmt=color,

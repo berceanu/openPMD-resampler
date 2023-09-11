@@ -54,4 +54,4 @@ def setup_logger(
 
 
 # Use the setup_logger function to set up a logger
-logger = setup_logger("opmdresampler", os.path.join(os.getcwd(), "output.md"))
+logger = setup_logger("main_logger", os.path.join(os.getcwd(), "output.md"))

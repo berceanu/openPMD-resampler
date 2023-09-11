@@ -4,11 +4,11 @@ from typing import Callable
 import datashader as ds
 from datashader.mpl_ext import dsshow
 
-from opmdresampler.plot_utils import PURPLE_RABBIT, customize_tick_labels
+from .plot_utils import galactic_spectrum, customize_tick_labels
 
 
 class DataShaderPlot(ABC):
-    cmap = PURPLE_RABBIT
+    cmap = galactic_spectrum
     norm = "log"
     weight_col = "weights"
 

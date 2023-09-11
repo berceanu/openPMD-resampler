@@ -4,8 +4,8 @@ This module contains various particle resampling strategies for particle in cell
 import numpy as np
 import pandas as pd
 
-from opmdresampler.log import logger
-from opmdresampler.utils import dataset_info
+from .log import logger
+from .utils import dataset_info
 
 
 class ParticleResampler:

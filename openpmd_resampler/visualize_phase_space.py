@@ -9,16 +9,16 @@ import pandas as pd
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm
 
-from opmdresampler.figure_layout import FigureLayout
-from opmdresampler.histograms import (
+from .figure_layout import FigureLayout
+from .histograms import (
     EqualWeightDistributionPlot,
     StandardHistogramPlot,
     StandardHistogram,
     EqualWeightHistogram,
 )
-from opmdresampler.image_plots import StandardDataShaderPlot
-from opmdresampler.plot_utils import PURPLE_RABBIT
-from opmdresampler.utils import combine_images, unique_filename
+from .image_plots import StandardDataShaderPlot
+from .plot_utils import galactic_spectrum
+from .utils import combine_images, unique_filename
 
 
 class MultiplePanelPlotter(ABC):
@@ -67,6 +67,10 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
     layout = (3, 3, 2)
     energy_col = "energy_mev"
     energy_label = "Energy (MeV)"
+
+    def __init__(self, df, output_filename=None):
+        super().__init__(df, output_filename)
+        self.plotters = []
 
     def add_legend(self, primary_label, secondary_label):
         last_plotter = self.plotters[-1]
@@ -163,7 +167,7 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
 
 
 class MultipleImagePlotter(MultiplePanelPlotter):
-    cmap = PURPLE_RABBIT
+    cmap = galactic_spectrum
     cbar_label = "Number of 'real' electrons"
     norm = None
 
