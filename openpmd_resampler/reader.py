@@ -127,9 +127,15 @@ class DataFrameCreator:
 
 
 class DataFrameUpdater:
-    def __init__(self, df: pd.DataFrame, swap_yz: bool = False):
-        self.df = df
+    def __init__(self, df_or_class_with_df, swap_yz: bool = False):
+        self._df_or_class_with_df = df_or_class_with_df
         self.swap_yz = swap_yz
+
+    @property
+    def df(self):
+        if isinstance(self._df_or_class_with_df, pd.DataFrame):
+            return self._df_or_class_with_df
+        return self._df_or_class_with_df.df
 
     def update(self):
         self.add_offsets()
