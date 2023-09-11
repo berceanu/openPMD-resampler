@@ -17,23 +17,16 @@ def main():
     parser.add_argument("opmd_path", type=str, help="Path to the OpenPMD file")
     args = parser.parse_args()
     opmd_path = Path(args.opmd_path)
-    ##############################
 
     # Create the dataframe
-    df = ParticleDataReader.from_file(
-        opmd_path, particle_species_name="e_highGamma"
-    )  # or "e_all"
-
-    # Create the phase space plots
-    phase_space = PhaseSpaceVisualizer(df, label="PIC data")
+    df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_highGamma")
 
     # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df)
     df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
-    # For a more drastic reduction in the number of particles, use
-    # df_thin = resampler.simple_thinning(10**4).set_weights_to(1).finalize()
 
     # Visualize both dataframes in order to see effects of thining
+    phase_space = PhaseSpaceVisualizer(df, label="PIC data")
     phase_space_thin = PhaseSpaceVisualizer(df_thin, label="Resampled data")
     comparative_phase_space = phase_space + phase_space_thin
     comparative_phase_space.create_plot().savefig("plots/comparative_phase_space.png")
