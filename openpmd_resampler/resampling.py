@@ -11,9 +11,17 @@ from .reader import DataFrameUpdater
 
 class ParticleResampler:
     def __init__(self, df: pd.DataFrame, weight_column: str = "weights"):
-        self.df = df.copy()
+        self._df = df.copy()
         self.weight_column = weight_column
-        self.updater = DataFrameUpdater(self.df)
+        self.updater = DataFrameUpdater(self)
+
+    @property
+    def df(self):
+        return self._df
+
+    @df.setter
+    def df(self, value):
+        self._df = value
 
     def set_weights_to(self, new_weight: int = 1) -> pd.DataFrame:
         self.df[self.weight_column] = new_weight
@@ -77,13 +85,14 @@ class ParticleResampler:
 
         return self
 
-    def repeat_and_perturb(self, epsilon_ratio: float = 0.01) -> pd.DataFrame:
+    def repeat_and_perturb(self, percentage: float = 0.001) -> pd.DataFrame:
         """
         Repeat each row based on the 'weights' column, set all 'weights' to 1,
-        add a small random value between -epsilon and epsilon to the position and momentum columns.
+        and add a small random value to the position and momentum columns.
         """
         random_generator = np.random.default_rng(seed=42)
 
+        # Drop energy column
         energy_mev_dropped = False
         if "energy_mev" in self.df.columns:
             self.df.drop(columns=["energy_mev"], inplace=True)
@@ -98,16 +107,20 @@ class ParticleResampler:
         # Get all columns except 'weights'
         cols = [col for col in self.df.columns if col != self.weight_column]
 
-        # Add small epsilon to each column
-        for col in cols:
-            epsilon = (
-                self.df[col] * epsilon_ratio
-            )  # epsilon is a percentage of the value in each cell
-            self.df[col] += random_generator.uniform(-epsilon, epsilon)
+        # Compute mean and std for standardization
+        mean = self.df.mean()
+        std = self.df.std()
 
-        # Reset the index
+        # Standardize and add noise in-place
+        for col in cols:
+            self.df[col] = (self.df[col] - mean[col]) / std[col]
+            epsilon = self.df[col].abs() * percentage
+            self.df[col] += random_generator.normal(0, epsilon)
+            self.df[col] = self.df[col] * std[col] + mean[col]
+
         self.df.reset_index(drop=True, inplace=True)
 
+        # Recompute energy column
         if energy_mev_dropped:
             self.updater.add_energy_column()
 
