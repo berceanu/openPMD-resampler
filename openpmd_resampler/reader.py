@@ -127,13 +127,17 @@ class DataFrameCreator:
 
 
 class DataFrameUpdater:
-    def __init__(self, df: pd.DataFrame, swap_yz: bool):
+    def __init__(self, df: pd.DataFrame, swap_yz: bool = False):
         self.df = df
+        self.swap_yz = swap_yz
+
+    def update(self):
         self.add_offsets()
-        if swap_yz:
+        if self.swap_yz:
             self.swap_yz_axes()
         self.convert_to_nuclear_units()
         self.add_energy_column()
+        return self
 
     def add_offsets(self):
         for component in Components:
@@ -203,7 +207,9 @@ class ParticleDataReader:
     def __init__(self, file_path: str, particle_species_name: str = "e_all"):
         self.loader = OpenPMDLoader(file_path, particle_species_name)
         self.creator = DataFrameCreator(self.loader.data, self.loader.units)
-        self.updater = DataFrameUpdater(self.creator.df, swap_yz=self.loader.swap_yz)
+        self.updater = DataFrameUpdater(
+            self.creator.df, swap_yz=self.loader.swap_yz
+        ).update()
         self.analyzer = DataAnalyzer(self.updater.df)
 
     @classmethod
