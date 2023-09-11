@@ -17,14 +17,14 @@ class DataFrameToFile:
     A class used to write a pandas DataFrame to a text file with a custom header.
     """
 
-    def __init__(self, dataframe: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame):
         """
         Parameters
         ----------
-        dataframe : pd.DataFrame
+        df : pd.DataFrame
             The pandas DataFrame to be written to a text file.
         """
-        self.df = dataframe
+        self.df = df
         self.units = units
         self.include_weights = True
         self.include_energy = True
