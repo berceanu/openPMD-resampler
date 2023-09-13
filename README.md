@@ -8,7 +8,7 @@ We often need to post-process the particle data from a PIC simulation, and pass 
 ## :rocket: Installation
 
 ```console
-$ pip install git+https://github.com/berceanu/openPMD-resampler.git#egg=openpmd_resampler
+$ pip install git+https://github.com/berceanu/openPMD-resampler
 ```
 
 ## :book: Usage
