@@ -1,3 +1,6 @@
+<img src="./resampler_logo.png" alt="Resampler Logo" width="400"/>
+
+
 # :electron: openPMD-Resampler
 Resampling tools for `openPMD` PIC data
 
