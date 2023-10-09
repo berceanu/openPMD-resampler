@@ -60,7 +60,7 @@ class DataFrameToFile:
             index=False,
             header=False,
             sep=",",
-            float_format="%.16e",
+            float_format="%.7e",
             mode="a",
         )
         logger.info("Wrote %s\n", file_path)

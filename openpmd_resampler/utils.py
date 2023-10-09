@@ -21,6 +21,18 @@ def thousand_separators(number):
     return f"{number:,}"
 
 
+def describe(df):
+    desc = pd.DataFrame(index=['count', 'mean', 'std', 'min', 'max'])
+
+    for col in df.columns:
+        desc.loc['count', col] = df[col].count()
+        desc.loc['mean', col] = df[col].mean()
+        desc.loc['std', col] = df[col].std()
+        desc.loc['min', col] = df[col].min()
+        desc.loc['max', col] = df[col].max()
+
+    return desc
+
 def dataset_info(df: pd.DataFrame) -> None:
     logger.info(
         "The dataset contains %s macroparticles, corresponding to %s 'real' electrons, "
@@ -31,7 +43,8 @@ def dataset_info(df: pd.DataFrame) -> None:
     )
     logger.info("Descriptive statistics of the dataset:\n")
     logger.info("```\n")
-    logger.info("%s\n", df.describe())
+    description = describe(df)
+    logger.info("%s\n", description)
     logger.info("```\n")
 
 

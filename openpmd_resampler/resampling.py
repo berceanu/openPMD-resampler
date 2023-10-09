@@ -62,6 +62,10 @@ class ParticleResampler:
 
         return self
 
+    def drop_rows_using_mask(self, deletion_mask):
+        self.df.loc[deletion_mask] = None
+        self.df.dropna(inplace=True)
+
     def global_leveling_thinning(self, k: float = 2.0) -> pd.DataFrame:
         average_weight = self.df[self.weight_column].mean()
         threshold_weight = k * average_weight
@@ -76,7 +80,8 @@ class ParticleResampler:
         )
 
         # Delete particles
-        self.df.drop(self.df[deletion_mask].index, inplace=True)
+        self.drop_rows_using_mask(deletion_mask)
+        #self.df.drop(self.df[deletion_mask].index, inplace=True)
 
         # Update weights for the remaining particles
         self.df[self.weight_column] = self.df[self.weight_column].where(

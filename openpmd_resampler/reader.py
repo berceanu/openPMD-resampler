@@ -49,8 +49,14 @@ class OpenPMDLoader:
         self.rescale_momenta()
         self.convert_to_SI()
         self.add_offsets()
-        
+        self.swap_yz_axes()
+        self.convert_to_nuclear_units()
+        self.add_energy_column()
+
+        self.column_name_mappings = self.get_column_name_mappings()
         self.df = pd.DataFrame(self.data, dtype=np.float32)
+        self.df.rename(columns=self.column_name_mappings, inplace=True)
+
         del self.data
         del self.units
 
@@ -135,13 +141,48 @@ class OpenPMDLoader:
             ]
             del self.data[f"{Attributes.POSITION_OFFSET.value}_{component.value}"]
 
+    def swap_yz_axes(self):
+        if self.swap_yz:
+            for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
+                self.data[f"{attribute.value}_y"], self.data[f"{attribute.value}_z"] = (
+                    self.data[f"{attribute.value}_z"],
+                    self.data[f"{attribute.value}_y"]
+                )
+            logger.info("Swapping y and z axes.\n")
 
+    def convert_to_nuclear_units(self):
+        for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
+            for component in Components:
+                self.data[f"{attribute.value}_{component.value}"] *= getattr(
+                    conversion_factors, attribute.value
+                )
+
+    def get_column_name_mappings(self):
+        new_column_suffixes = {
+            Attributes.POSITION.value: "um",
+            Attributes.MOMENTUM.value: "mev_c",
+        }
+        column_name_mappings = {}
+        for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
+            for component in Components:
+                column_name_mappings[
+                    f"{attribute.value}_{component.value}"
+                ] = f"{attribute.value}_{component.value}_{new_column_suffixes[attribute.value]}"
+
+        return column_name_mappings
+
+    def add_energy_column(self):
+        momentum_x = self.data[f"{Attributes.MOMENTUM.value}_x"]
+        momentum_y = self.data[f"{Attributes.MOMENTUM.value}_y"]
+        momentum_z = self.data[f"{Attributes.MOMENTUM.value}_z"]
+
+        energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + constants.electron_mass_mev_c2**2)
+        self.data["energy_mev"] = energy_mev
 
 
 class DataFrameUpdater:
-    def __init__(self, df_or_class_with_df, swap_yz: bool = False):
+    def __init__(self, df_or_class_with_df):
         self._df_or_class_with_df = df_or_class_with_df
-        self.swap_yz = swap_yz
 
     @property
     def df(self):
@@ -149,45 +190,7 @@ class DataFrameUpdater:
             return self._df_or_class_with_df
         return self._df_or_class_with_df.df
 
-    def update(self):
-        if self.swap_yz:
-            self.swap_yz_axes()
-        self.convert_to_nuclear_units()
-        self.add_energy_column()
-        return self
 
-
-    def swap_yz_axes(self):
-        for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
-            self.df[[f"{attribute.value}_y", f"{attribute.value}_z"]] = self.df[
-                [f"{attribute.value}_z", f"{attribute.value}_y"]
-            ]
-        logger.info("Swapping y and z axes.\n")
-
-    def convert_to_nuclear_units(self):
-        new_column_suffixes = {
-            Attributes.POSITION.value: "um",
-            Attributes.MOMENTUM.value: "mev_c",
-        }
-        new_column_names = {}
-        for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
-            for component in Components:
-                self.df[f"{attribute.value}_{component.value}"] *= getattr(
-                    conversion_factors, attribute.value
-                )
-                new_column_names[
-                    f"{attribute.value}_{component.value}"
-                ] = f"{attribute.value}_{component.value}_{new_column_suffixes[attribute.value]}"
-
-        self.df.rename(columns=new_column_names, inplace=True)
-
-    def add_energy_column(self):
-        self.df["energy_mev"] = np.sqrt(
-            self.df["momentum_x_mev_c"] ** 2
-            + self.df["momentum_y_mev_c"] ** 2
-            + self.df["momentum_z_mev_c"] ** 2
-            + constants.electron_mass_mev_c2**2
-        )
 
 
 class DataAnalyzer:
@@ -211,9 +214,7 @@ class DataAnalyzer:
 class ParticleDataReader:
     def __init__(self, file_path: str, particle_species_name: str = "e_all"):
         self.loader = OpenPMDLoader(file_path, particle_species_name)
-        self.updater = DataFrameUpdater(
-            self.loader.df, swap_yz=self.loader.swap_yz
-        ).update()
+        self.updater = DataFrameUpdater(self.loader.df)
         self.analyzer = DataAnalyzer(self.updater.df)
 
     @classmethod
