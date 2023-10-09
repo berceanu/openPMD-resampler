@@ -131,8 +131,7 @@ class OpenPMDLoader:
 
     def convert_to_SI(self):
         for column_name, unit_SI in self.units.items():
-            self.data[column_name] = self.data[column_name].view('float32')
-            self.data[column_name] *= unit_SI
+            self.data[column_name] = (self.data[column_name] * unit_SI)
 
     def add_offsets(self):
         for component in Components:
