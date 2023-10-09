@@ -823,6 +823,52 @@ package:
   noarch: python
   size: 13458
   timestamp: 1696677888423
+- name: cython
+  version: 3.0.3
+  manager: conda
+  platform: linux-64
+  dependencies:
+    libgcc-ng: '>=12'
+    libstdcxx-ng: '>=12'
+    python: '>=3.11,<3.12.0a0'
+    python_abi: 3.11.* *_cp311
+  url: https://conda.anaconda.org/conda-forge/linux-64/cython-3.0.3-py311hb755f60_0.conda
+  hash:
+    md5: c54d71e8031a10d08f2e87ff81821588
+    sha256: dc3d1496fd7a679e3f8c040b6286d184331bc58553a883de179ac31d5f64b3ce
+  optional: false
+  category: main
+  build: py311hb755f60_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: APACHE
+  size: 3733746
+  timestamp: 1696512527990
+- name: cython
+  version: 3.0.3
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    __osx: '>=10.9'
+    libcxx: '>=16.0.6'
+    python: '>=3.11,<3.12.0a0 *_cpython'
+    python_abi: 3.11.* *_cp311
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/cython-3.0.3-py311hbaf5611_0.conda
+  hash:
+    md5: ccea38133fae41e68b04a7f766257fef
+    sha256: 3e015bd8705c77818369ae2887e6c7b9b2645b9b91376d2ab42879f863485147
+  optional: false
+  category: main
+  build: py311hbaf5611_0
+  arch: aarch64
+  subdir: osx-arm64
+  build_number: 0
+  license: Apache-2.0
+  license_family: APACHE
+  size: 3431688
+  timestamp: 1696512624639
 - name: dask-core
   version: 2023.9.3
   manager: conda
@@ -5044,6 +5090,49 @@ package:
   noarch: python
   size: 44837
   timestamp: 1530963184592
+- name: psutil
+  version: 5.9.5
+  manager: conda
+  platform: linux-64
+  dependencies:
+    libgcc-ng: '>=12'
+    python: '>=3.11,<3.12.0a0'
+    python_abi: 3.11.* *_cp311
+  url: https://conda.anaconda.org/conda-forge/linux-64/psutil-5.9.5-py311h459d7ec_1.conda
+  hash:
+    md5: 490d7fa8675afd1aa6f1b2332d156a45
+    sha256: e92d2120fc4b98fe838b3d52d4907fae97808bdd504fb84aa33aea8c4be7bc61
+  optional: false
+  category: main
+  build: py311h459d7ec_1
+  arch: x86_64
+  subdir: linux-64
+  build_number: 1
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 498698
+  timestamp: 1695367306421
+- name: psutil
+  version: 5.9.5
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    python: '>=3.11,<3.12.0a0 *_cpython'
+    python_abi: 3.11.* *_cp311
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/psutil-5.9.5-py311heffc1b2_1.conda
+  hash:
+    md5: a40123b40642b8b08b3830a3f6bc7fd9
+    sha256: a12a525d3bcaed04e0885b2bd00f4f626c80c19d7c0ae8bb7cf7121aefb39e52
+  optional: false
+  category: main
+  build: py311heffc1b2_1
+  arch: aarch64
+  subdir: osx-arm64
+  build_number: 1
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 506971
+  timestamp: 1695367619126
 - name: pthread-stubs
   version: '0.4'
   manager: conda
@@ -5247,6 +5336,48 @@ package:
   noarch: python
   size: 853439
   timestamp: 1691408777841
+- name: pynvml
+  version: 11.4.1
+  manager: conda
+  platform: linux-64
+  dependencies:
+    python: '>=3.5'
+  url: https://conda.anaconda.org/conda-forge/noarch/pynvml-11.4.1-pyhd8ed1ab_0.tar.bz2
+  hash:
+    md5: c2e7773871d1b1ce247ffe19cd128c9f
+    sha256: 9c9b9a7b6c0832984bb940ed6f022f20eb645a042ae69e16c72e379d42735818
+  optional: false
+  category: main
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: BSD-3-Clause
+  license_family: BSD
+  noarch: python
+  size: 40913
+  timestamp: 1639061705922
+- name: pynvml
+  version: 11.4.1
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    python: '>=3.5'
+  url: https://conda.anaconda.org/conda-forge/noarch/pynvml-11.4.1-pyhd8ed1ab_0.tar.bz2
+  hash:
+    md5: c2e7773871d1b1ce247ffe19cd128c9f
+    sha256: 9c9b9a7b6c0832984bb940ed6f022f20eb645a042ae69e16c72e379d42735818
+  optional: false
+  category: main
+  build: pyhd8ed1ab_0
+  arch: aarch64
+  subdir: osx-arm64
+  build_number: 0
+  license: BSD-3-Clause
+  license_family: BSD
+  noarch: python
+  size: 40913
+  timestamp: 1639061705922
 - name: pyparsing
   version: 3.1.1
   manager: conda
@@ -5873,6 +6004,63 @@ package:
   noarch: python
   size: 183200
   timestamp: 1696096819794
+- name: scalene
+  version: 1.5.31.1
+  manager: conda
+  platform: linux-64
+  dependencies:
+    cloudpickle: '>=1.5.0'
+    cython: '*'
+    jinja2: '*'
+    libgcc-ng: '>=12'
+    libstdcxx-ng: '>=12'
+    psutil: '>=5.9.2'
+    pynvml: '>=11.0.0,<11.5'
+    python: '>=3.11,<3.12.0a0'
+    python_abi: 3.11.* *_cp311
+    rich: '>=9.2.0'
+  url: https://conda.anaconda.org/conda-forge/linux-64/scalene-1.5.31.1-py311hb755f60_1.conda
+  hash:
+    md5: 0deb1c73d785f0196dcf1a4d861f79a5
+    sha256: 70cda1a1c6a181847e73216136ab8cb36d2de7fef5be4878df151abdf2fdee7b
+  optional: false
+  category: main
+  build: py311hb755f60_1
+  arch: x86_64
+  subdir: linux-64
+  build_number: 1
+  license: Apache-2.0
+  license_family: APACHE
+  size: 556828
+  timestamp: 1695820561090
+- name: scalene
+  version: 1.5.31.1
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    cloudpickle: '>=1.5.0'
+    cython: '*'
+    jinja2: '*'
+    libcxx: '>=15.0.7'
+    psutil: '>=5.9.2'
+    pynvml: '>=11.0.0,<11.5'
+    python: '>=3.11,<3.12.0a0 *_cpython'
+    python_abi: 3.11.* *_cp311
+    rich: '>=9.2.0'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/scalene-1.5.31.1-py311ha891d26_1.conda
+  hash:
+    md5: a02f6dda94b99ae006039099604120fd
+    sha256: e9cee8a39cd7235701f130170fb2b05e981a7eb3828c76adfcff65a98488170d
+  optional: false
+  category: main
+  build: py311ha891d26_1
+  arch: aarch64
+  subdir: osx-arm64
+  build_number: 1
+  license: Apache-2.0
+  license_family: APACHE
+  size: 480409
+  timestamp: 1695821056843
 - name: scipy
   version: 1.11.3
   manager: conda
