@@ -189,7 +189,13 @@ class DataFrameUpdater:
             return self._df_or_class_with_df
         return self._df_or_class_with_df.df
 
-
+    def add_energy_column(self):
+        self.df["energy_mev"] = np.sqrt(
+            self.df["momentum_x_mev_c"] ** 2
+            + self.df["momentum_y_mev_c"] ** 2
+            + self.df["momentum_z_mev_c"] ** 2
+            + constants.electron_mass_mev_c2**2
+        )
 
 
 class DataAnalyzer:
