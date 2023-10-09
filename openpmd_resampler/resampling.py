@@ -27,7 +27,7 @@ class ParticleResampler:
         if new_weight == 1 and self.df[self.weight_column].nunique() != 1:
             raise ValueError("Not all weights are equal. Setting them to 1 might not be a good idea.")
         else:
-            logger.info("Multiplicative factor: %s\n", self.df[self.weight_column].iloc[0])
+            logger.info("Multiplicative factor for obtaining original charge: %.2f\n", self.df[self.weight_column].iloc[0])
             self.df[self.weight_column] = new_weight
 
         return self
