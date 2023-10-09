@@ -14,7 +14,7 @@ from openpmd_resampler.visualize_phase_space import PhaseSpaceVisualizer
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("opmd_path", type=str, default="h5/lwfa.h5", help="Path to the OpenPMD file")
+    parser.add_argument("--opmd_path", type=str, default="h5/lwfa.h5", help="Path to the OpenPMD file")
     parser.add_argument("--species", "-s", type=str, default="e_highGamma",
                         help="Particle species name (default: e_highGamma)")
     args = parser.parse_args()
