@@ -19,7 +19,7 @@ def main():
     opmd_path = Path(args.opmd_path)
 
     # Create the dataframe
-    df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_highGamma")
+    df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_all")
 
     # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df)
