@@ -7,7 +7,7 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
 
 [tasks]
-start = "python usage.py h5/lwfa.h5"
+start = "python usage.py $1"
 
 [dependencies]
 python = "3.11.*"
