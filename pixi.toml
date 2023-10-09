@@ -7,7 +7,10 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
 
 [tasks]
-start = "python usage.py $1"
+start = "python usage.py"
+profile = "python -m memray run -o output.bin usage.py"
+flamegraph = "memray flamegraph output.bin"
+
 
 [dependencies]
 python = "3.11.*"
@@ -15,3 +18,4 @@ openpmd-api = "0.15.*"
 pandas = "2.0.*"
 datashader = "0.15.*"
 matplotlib = "3.7.*"
+memray = "1.10.0.*"
