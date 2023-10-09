@@ -81,7 +81,6 @@ class ParticleResampler:
 
         # Delete particles
         self.drop_rows_using_mask(deletion_mask)
-        #self.df.drop(self.df[deletion_mask].index, inplace=True)
 
         # Update weights for the remaining particles
         self.df[self.weight_column] = self.df[self.weight_column].where(
