@@ -17,8 +17,8 @@ def main():
     parser.add_argument("opmd_path", type=str, help="Path to the OpenPMD file")
     parser.add_argument("--species", "-s", type=str, default="e_all",
                         help="Particle species name (default: e_all)")
-    parser.add_argument("--reduction_factor", "-k", type=int, default=2,
-                        help="The 'k' level for global leveling thinning (default: 2)")
+    parser.add_argument("--reduction_factor", "-k", type=float, default=2.0,
+                        help="The 'k' level for global leveling thinning (default: 2.0)")
     parser.add_argument("--no_plot", action="store_true",
                         help="If set, the phase space plot will not be created.")
     parser.add_argument("--no_save", action="store_true",
