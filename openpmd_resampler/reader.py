@@ -44,10 +44,16 @@ class OpenPMDLoader:
         self.data, self.units = self.get_particle_data_and_units()
 
         self.series.flush()
+        del self.series
 
         self.rescale_momenta()
+        self.convert_to_SI()
+        self.add_offsets()
+        
+        self.df = pd.DataFrame(self.data, dtype=np.float32)
+        del self.data
+        del self.units
 
-        del self.series
 
     def open_series(self) -> io.Series:
         return io.Series(self.file_path, io.Access.read_only)
@@ -117,24 +123,19 @@ class OpenPMDLoader:
                     f"{Attributes.MOMENTUM.value}_{component.value}"
                 ] *= self.data["weights"] ** (-weighting_power)
 
-
-class DataFrameCreator:
-    def __init__(self, data: dict, units: dict):
-        self.data = data
-        self.units = units
-        self.adjust_array_lengths()
-        self.df = pd.DataFrame(self.data, dtype=np.float32)
-        self.convert_to_SI()
-
-    def adjust_array_lengths(self):
-        for component in Components:
-            key = f"{Attributes.POSITION_OFFSET.value}_{component.value}"
-            if self.data[key].size == 1:
-                self.data[key] = np.repeat(self.data[key], self.data["weights"].size)
-
     def convert_to_SI(self):
         for column_name, unit_SI in self.units.items():
-            self.df[column_name].values *= unit_SI
+            self.data[column_name] = self.data[column_name].view('float32')
+            self.data[column_name] *= unit_SI
+
+    def add_offsets(self):
+        for component in Components:
+            self.data[f"{Attributes.POSITION.value}_{component.value}"] += self.data[
+                f"{Attributes.POSITION_OFFSET.value}_{component.value}"
+            ]
+            del self.data[f"{Attributes.POSITION_OFFSET.value}_{component.value}"]
+
+
 
 
 class DataFrameUpdater:
@@ -149,25 +150,12 @@ class DataFrameUpdater:
         return self._df_or_class_with_df.df
 
     def update(self):
-        self.add_offsets()
         if self.swap_yz:
             self.swap_yz_axes()
         self.convert_to_nuclear_units()
         self.add_energy_column()
         return self
 
-    def add_offsets(self):
-        for component in Components:
-            self.df[f"{Attributes.POSITION.value}_{component.value}"] += self.df[
-                f"{Attributes.POSITION_OFFSET.value}_{component.value}"
-            ]
-        self.df.drop(
-            columns=[
-                f"{Attributes.POSITION_OFFSET.value}_{component.value}"
-                for component in Components
-            ],
-            inplace=True,
-        )
 
     def swap_yz_axes(self):
         for attribute in [Attributes.POSITION, Attributes.MOMENTUM]:
@@ -223,9 +211,8 @@ class DataAnalyzer:
 class ParticleDataReader:
     def __init__(self, file_path: str, particle_species_name: str = "e_all"):
         self.loader = OpenPMDLoader(file_path, particle_species_name)
-        self.creator = DataFrameCreator(self.loader.data, self.loader.units)
         self.updater = DataFrameUpdater(
-            self.creator.df, swap_yz=self.loader.swap_yz
+            self.loader.df, swap_yz=self.loader.swap_yz
         ).update()
         self.analyzer = DataAnalyzer(self.updater.df)
 
