@@ -67,6 +67,10 @@ class ParticleResampler:
         self.df.dropna(inplace=True)
 
     def global_leveling_thinning(self, k: float = 2.0) -> pd.DataFrame:
+        """
+        If the initial number of macroparticles is N, the number after
+        thinning will be roughly N/k.
+        """
         average_weight = self.df[self.weight_column].mean()
         threshold_weight = k * average_weight
 
@@ -86,6 +90,9 @@ class ParticleResampler:
         self.df[self.weight_column] = self.df[self.weight_column].where(
             self.df[self.weight_column] >= threshold_weight, threshold_weight
         )
+
+        logger.info("Dataset after thinning.\n")
+        dataset_info(self.df)
 
         return self
 
@@ -131,6 +138,6 @@ class ParticleResampler:
         return self
 
     def finalize(self) -> pd.DataFrame:
-        logger.info("Reducing number of particles.\n")
+        logger.info("Final dataset to be exported.\n")
         dataset_info(self.df)
         return self.df
