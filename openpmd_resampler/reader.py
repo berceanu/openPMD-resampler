@@ -123,7 +123,7 @@ class DataFrameCreator:
         self.data = data
         self.units = units
         self.adjust_array_lengths()
-        self.df = pd.DataFrame(self.data)
+        self.df = pd.DataFrame(self.data, dtype=np.float32)
         self.convert_to_SI()
 
     def adjust_array_lengths(self):
