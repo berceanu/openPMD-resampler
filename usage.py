@@ -1,5 +1,5 @@
 """
-This module provides a command-line interface for reading OpenPMD files, 
+This module provides a command-line interface for reading OpenPMD files,
 visualizing phase space, resampling particles, and writing the results to a text file.
 """
 import argparse
@@ -15,15 +15,18 @@ def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("opmd_path", type=str, help="Path to the OpenPMD file")
+    parser.add_argument("--species", "-s", type=str, default="e_all",
+                        help="Particle species name (default: e_all")
     args = parser.parse_args()
     opmd_path = Path(args.opmd_path)
+    particle_species_name = args.species
 
     # Create the dataframe
-    df = ParticleDataReader.from_file(opmd_path, particle_species_name="e_all")
+    df = ParticleDataReader.from_file(opmd_path, particle_species_name=particle_species_name)
 
     # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df)
-    df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
+    df_thin = resampler.global_leveling_thinning(k=4).set_weights_to(1).finalize()
 
     # Visualize both dataframes in order to see effects of thining
     phase_space = PhaseSpaceVisualizer(df, label="PIC data")
