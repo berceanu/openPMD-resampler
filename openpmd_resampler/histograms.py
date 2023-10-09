@@ -146,8 +146,8 @@ class StandardHistogramPlot(HistogramPlot):
         self.ax.plot(
             x_coords,
             density,
-            linestyle="none",
-            linewidth=0.0,
+            linestyle="-",
+            linewidth=0.5,
             color=color,
             marker=",",
             markeredgewidth=0.0,
