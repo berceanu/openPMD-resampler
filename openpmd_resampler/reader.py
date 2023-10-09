@@ -134,7 +134,7 @@ class DataFrameCreator:
 
     def convert_to_SI(self):
         for column_name, unit_SI in self.units.items():
-            self.df[column_name] = self.df[column_name].multiply(unit_SI)
+            self.df[column_name].values *= unit_SI
 
 
 class DataFrameUpdater:
