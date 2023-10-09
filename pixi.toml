@@ -4,7 +4,7 @@ version = "0.5.1"
 description = "A Python package to export particle data from openPMD to text format"
 authors = ["Andrei Berceanu <andreicberceanu@gmail.com>"]
 channels = ["conda-forge"]
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "linux-64"]
 
 [tasks]
 start = "python usage.py h5/lwfa.h5"
