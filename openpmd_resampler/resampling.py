@@ -24,7 +24,11 @@ class ParticleResampler:
         self._df = value
 
     def set_weights_to(self, new_weight: int = 1) -> pd.DataFrame:
-        self.df[self.weight_column] = new_weight
+        if new_weight == 1 and self.df[self.weight_column].nunique() != 1:
+            raise ValueError("Not all weights are equal. Setting them to 1 might not be a good idea.")
+        else:
+            logger.info("Multiplicative factor: %s\n", self.df[self.weight_column][0])
+            self.df[self.weight_column] = new_weight
 
         return self
 
