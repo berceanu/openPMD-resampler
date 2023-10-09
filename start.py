@@ -40,7 +40,7 @@ def main():
 
     if not no_plot:
         phase_space_thin = PhaseSpaceVisualizer(df_thin, label="Resampled data")
-        phase_space_thin.create_plot().savefig("phase_space.png")
+        phase_space_thin.create_plot().savefig("./phase_space.png")
 
     if not no_save:
         DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
