@@ -39,6 +39,11 @@ class OpenPMDLoader:
 
         self.swap_yz = self.series.software == "PIConGPU"
         self.iteration = self.get_iteration()
+
+        detected_species = [name for name in self.iteration.particles]
+        logger.info("Detected particle species: %s.\n", detected_species)
+        if self.particle_species_name not in detected_species:
+            raise ValueError(f"Provided species '{self.particle_species_name}' not available. Detected species: {detected_species}")
         self.electrons = self.iteration.particles[self.particle_species_name]
 
         self.data, self.units = self.get_particle_data_and_units()
