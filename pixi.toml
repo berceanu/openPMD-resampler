@@ -1,0 +1,17 @@
+[project]
+name = "openPMD-resampler"
+version = "0.5.1"
+description = "A Python package to export particle data from openPMD to text format"
+authors = ["Andrei Berceanu <andreicberceanu@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tasks]
+start = "python usage.py h5/lwfa.h5"
+
+[dependencies]
+python = "3.11.*"
+openpmd-api = "0.15.*"
+pandas = "2.0.*"
+datashader = "0.15.*"
+matplotlib = "3.7.*"
