@@ -8,7 +8,7 @@ platforms = ["osx-arm64", "linux-64", "linux-ppc64le"]
 
 [tasks]
 usage = "python usage.py --opmd_path h5/lwfa.h5 --species e_highGamma --reduction_factor 2"
-start = "python start.py --opmd_path h5/gas_189394.bp --species e_all --reduction_factor 100"
+start = "python start.py"
 
 [dependencies]
 python = "3.11.*"

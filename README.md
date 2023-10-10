@@ -34,8 +34,8 @@ $ pixi run start --opmd_path <path_to_your_openPMD_file> --species <electron_spe
 
 Replace descriptions between chevrons `<>` by relevant values, in this case the
 path to the PIC output file, name of the electron species (`e_all` or
-`e_highGamma` etc.) and an integer reduction factor `k`. If the initial PIC
-file has `N` macroparticles, the resulting reduced file will have `N/k`
+`e_highGamma` etc.) and an integer reduction factor `k`, typically between 2 and ~100.
+If the initial PIC file has `N` macroparticles, the resulting reduced file will have `N/k`
 macroparticles.
 
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
