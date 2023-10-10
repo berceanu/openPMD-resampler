@@ -54,27 +54,8 @@ position_x_um (μm), position_y_um (μm), position_z_um (μm), momentum_x_mev_c 
 
 ## :wrench: Development
 
-All project dependencies are listed under [`requirements.txt`](requirements.txt).
-
-After installing your favorite `Python` distribution, for example [`micromamba`](https://mamba.readthedocs.io/en/latest/micromamba-installation.html#umamba-install), create a new environment:
-
-```console
-$ micromamba env create -f environment.yml
-$ micromamba activate openpmd_resampler_env
-```
-
-Clone the repo and run: 
-
-```console
-$ python -m pip install -e .
-```
-
-To start from scratch:
-
-```console
-$ micromamba deactivate
-$ micromamba env remove -n openpmd_resampler_env
-```
+All project dependencies are listed under [`pixi.toml`](pixi.toml).
+Just create a fork, follow the install instructions and start making PRs.
 
 ## :atom_symbol: GEANT4
 
