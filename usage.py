@@ -14,19 +14,27 @@ from openpmd_resampler.visualize_phase_space import PhaseSpaceVisualizer
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--opmd_path", type=str, default="h5/lwfa.h5", help="Path to the OpenPMD file")
-    parser.add_argument("--species", "-s", type=str, default="e_highGamma",
-                        help="Particle species name (default: e_highGamma)")
+    parser.add_argument("--opmd_path", type=str, help="Path to the OpenPMD file")
+    parser.add_argument("--species", "-s", type=str, default="e_all",
+                        help="Particle species name (default: e_all)")
+    parser.add_argument("--reduction_factor", "-k", type=float, default=2.0,
+                        help="The 'k' level for global leveling thinning (default: 2.0)")
+    parser.add_argument("--no_plot", action="store_true",
+                        help="If set, the phase space plot will not be created.")
+    parser.add_argument("--no_csv", action="store_true",
+                        help="If set, the resulting dataframe will not be saved to file.")
+
     args = parser.parse_args()
     opmd_path = Path(args.opmd_path)
     particle_species_name = args.species
+    reduction_factor = args.reduction_factor
 
     # Create the dataframe
     df = ParticleDataReader.from_file(opmd_path, particle_species_name=particle_species_name)
 
     # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df)
-    df_thin = resampler.global_leveling_thinning().set_weights_to(1).finalize()
+    df_thin = resampler.global_leveling_thinning(k=reduction_factor).set_weights_to(1).finalize()
 
     # Visualize both dataframes in order to see effects of thining
     phase_space = PhaseSpaceVisualizer(df, label="PIC data")
