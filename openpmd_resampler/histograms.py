@@ -153,6 +153,14 @@ class StandardHistogramPlot(HistogramPlot):
             markeredgewidth=0.0,
         )
 
+class LogHistogramPlot(StandardHistogramPlot):
+    def standard_plot_styling(self):
+        self.ax.set_yscale("log")
+        super().standard_plot_styling()
+
+    def twin_axis_plot_styling(self):
+        self.ax.set_yscale("log")
+        super().twin_axis_plot_styling()
 
 class WeightHistogram(Histogram):
     bins = 100

@@ -13,6 +13,7 @@ from .figure_layout import FigureLayout
 from .histograms import (
     EqualWeightDistributionPlot,
     StandardHistogramPlot,
+    LogHistogramPlot,
     StandardHistogram,
     EqualWeightHistogram,
 )
@@ -107,8 +108,7 @@ class MultipleHistogramPlotter(MultiplePanelPlotter):
 
         ax = self.fig_layout.get_ax(2, 1)
         histogram = StandardHistogram(self.df, self.energy_col, self.weight_col)
-        plotter = StandardHistogramPlot(histogram, ax, self.energy_label)
-        ax.set_yscale('log')
+        plotter = LogHistogramPlot(histogram, ax, self.energy_label)
         self.plotters.append(plotter)
 
     def create_plot(self):
