@@ -10,24 +10,39 @@ We often need to post-process the particle data from a PIC simulation, and pass 
 
 ## :rocket: Installation
 
+We make use of the excellent [pixi](pixi.sh) package manager, which can be installed on Linux/macOS via
+
 ```console
-$ pip install git+https://github.com/berceanu/openPMD-resampler
+$ curl -fsSL https://pixi.sh/install.sh | bash
+```
+
+One can then clone this repo via 
+
+```console
+$ git clone git@github.com:berceanu/openPMD-resampler.git
 ```
 
 ## :book: Usage
 
-For an overview of the main functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md):
+For an overview of the main functionality, see the [`usage.py`](./usage.py) example script and its [output](./output.md).
+For production runs, use
 
 ```console
-$ python usage.py <path_to_your_openPMD_file>
+$ cd openPMD-resampler
+$ pixi run start --opmd_path <path_to_your_openPMD_file> --species <electron_species_name> --reduction_factor <k>
 ```
 
-Replace descriptions between chevrons `<>` by relevant values, in this case the path to the PIC output file.
+Replace descriptions between chevrons `<>` by relevant values, in this case the
+path to the PIC output file, name of the electron species (`e_all` or
+`e_highGamma` etc.) and an integer reduction factor `k`. If the initial PIC
+file has `N` macroparticles, the resulting reduced file will have `N/k`
+macroparticles.
+
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
 The code works with `openPMD`-compatible PIC codes, such as [`WarpX`](https://github.com/ECP-WarpX/WarpX), [`PIConGPU`](https://github.com/ComputationalRadiationPhysics/picongpu), [`fbpic`](https://github.com/fbpic/fbpic), etc.
 
-The runtime is under one minute on an *M1 MacBook Air* and the memory footprint is ~1 GB RAM.
+The runtime is typically a few minutes and the memory footprint is about twice the size of the input file.
 
 The output is a CSV text file, of the following form:
 
