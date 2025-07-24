@@ -17,6 +17,8 @@ def main():
     parser.add_argument("--opmd_path", type=str, help="Path to the OpenPMD file")
     parser.add_argument("--species", "-s", type=str, default="e_all",
                         help="Particle species name (default: e_all)")
+    parser.add_argument("--mass", "-m", type=float, default=1.0,
+                        help="Particle mass (default: 1.0)")
     parser.add_argument("--reduction_factor", "-k", type=float, default=2.0,
                         help="The 'k' level for global leveling thinning (default: 2.0)")
     parser.add_argument("--no_plot", action="store_true",
@@ -27,10 +29,11 @@ def main():
     args = parser.parse_args()
     opmd_path = Path(args.opmd_path)
     particle_species_name = args.species
+    particle_species_mass = args.mass
     reduction_factor = args.reduction_factor
 
     # Create the dataframe
-    df = ParticleDataReader.from_file(opmd_path, particle_species_name=particle_species_name)
+    df = ParticleDataReader.from_file(opmd_path, particle_species_name=particle_species_name, particle_species_mass=particle_species_mass)
 
     # Apply thinning algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df)
@@ -44,7 +47,7 @@ def main():
 
     # Write the reduced dataframe to a file
     DataFrameToFile(df_thin).exclude_weights().exclude_energy().write_to_file(
-        opmd_path.with_suffix(".txt")
+        opmd_path.with_suffix(".dat")
     )
 
 
