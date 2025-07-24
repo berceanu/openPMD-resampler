@@ -181,8 +181,10 @@ class OpenPMDLoader:
         momentum_y = self.data[f"{Attributes.MOMENTUM.value}_y"]
         momentum_z = self.data[f"{Attributes.MOMENTUM.value}_z"]
 
-        energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + self.particle_species_mass**2*constants.electron_mass_mev_c2**2)
-        self.data["energy_mev"] = energy_mev - self.particle_species_mass * constants.electron_mass_mev_c2
+        mass = self.particle_species_mass * constants.electron_mass_mev_c2
+
+        energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + mass**2)
+        self.data["energy_mev"] = energy_mev - mass
 
 
 class DataFrameUpdater:
@@ -196,12 +198,13 @@ class DataFrameUpdater:
         return self._df_or_class_with_df.df
 
     def add_energy_column(self):
+        mass = self.particle_species_mass * constants.electron_mass_mev_c2
         self.df["energy_mev"] = np.sqrt(
             self.df["momentum_x_mev_c"] ** 2
             + self.df["momentum_y_mev_c"] ** 2
             + self.df["momentum_z_mev_c"] ** 2
-            + self.particle_species_mass**2*constants.electron_mass_mev_c2**2
-        ) - self.particle_species_mass * constants.electron_mass_mev_c2
+            + mass**2
+        ) - mass
 
 class DataAnalyzer:
     def __init__(self, df: pd.DataFrame):
