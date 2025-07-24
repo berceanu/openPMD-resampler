@@ -42,7 +42,7 @@ class DataShaderPlot(ABC):
         self,
         plot_styling: Callable = None,
         add_cbar=True,
-        cbar_label="Number of 'real' electrons",
+        cbar_label="Number of 'real' particles",
     ):
         if plot_styling is None:
             plot_styling = self.default_plot_styling()
