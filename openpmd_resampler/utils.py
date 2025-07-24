@@ -11,15 +11,16 @@ from PIL import Image
 from .log import logger
 from .units import constants
 
+def convert_bytes_to_mb(size_in_bytes):
+    """Convert size in bytes to megabytes (MB)"""
+    return size_in_bytes / (1024.0**2)
 
 def convert_bytes_to_gb(size_in_bytes):
     """Convert size in bytes to gigabytes (GB)"""
     return size_in_bytes / (1024.0**3)
 
-
 def thousand_separators(number):
     return f"{number:,}"
-
 
 def describe(df):
     desc = pd.DataFrame(index=['count', 'mean', 'std', 'min', 'max'])
@@ -35,7 +36,7 @@ def describe(df):
 
 def dataset_info(df: pd.DataFrame) -> None:
     logger.info(
-        "The dataset contains %s macroparticles, corresponding to %s 'real' electrons, "
+        "The dataset contains %s macroparticles, corresponding to %s 'real' particles, "
         "with a total charge of %.2f pC.\n",
         thousand_separators(df.shape[0]),
         thousand_separators(int(df["weights"].sum())),
@@ -46,7 +47,6 @@ def dataset_info(df: pd.DataFrame) -> None:
     description = describe(df)
     logger.info("%s\n", description)
     logger.info("```\n")
-
 
 def unique_filename(suffix: str) -> str:
     """
@@ -64,7 +64,6 @@ def unique_filename(suffix: str) -> str:
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
         temp_filename = temp_file.name
     return temp_filename
-
 
 def combine_images(filenames: List[str], output_filename: str) -> None:
     """

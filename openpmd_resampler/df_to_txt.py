@@ -9,7 +9,7 @@ import pandas as pd
 
 from .log import logger
 from .units import units
-from .utils import convert_bytes_to_gb
+from .utils import convert_bytes_to_mb, convert_bytes_to_gb
 
 
 class DataFrameToFile:
@@ -67,5 +67,5 @@ class DataFrameToFile:
 
         # Compute and log the file size
         file_size_bytes = os.path.getsize(file_path)
-        file_size_gb = convert_bytes_to_gb(file_size_bytes)
-        logger.info("Final file size: %.2f GB", file_size_gb)
+        file_size_mb = convert_bytes_to_mb(file_size_bytes)
+        logger.info("Final file size: %.2f MB", file_size_mb)
