@@ -167,3 +167,7 @@ launch.json
 .pylintrc
 TODO.md
 phase_space.png
+
+#output files
+*.png
+output.md
