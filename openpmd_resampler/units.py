@@ -23,7 +23,7 @@ units = {
     "momentum_y_mev_c": Units.MOMENTUM.value,
     "momentum_z_mev_c": Units.MOMENTUM.value,
     "weights": Units.WEIGHTS.value,
-    "energy_mev": Units.ENERGY.value,
+    "kinetic_energy_mev": Units.ENERGY.value,
 }
 
 

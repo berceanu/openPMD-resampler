@@ -108,10 +108,10 @@ class ParticleResampler:
         random_generator = np.random.default_rng(seed=77125)
 
         # Drop energy column
-        energy_mev_dropped = False
-        if "energy_mev" in self.df.columns:
-            self.df.drop(columns=["energy_mev"], inplace=True)
-            energy_mev_dropped = True
+        kinetic_energy_mev_dropped = False
+        if "kinetic_energy_mev" in self.df.columns:
+            self.df.drop(columns=["kinetic_energy_mev"], inplace=True)
+            kinetic_energy_mev_dropped = True
 
         # Repeat rows based on the 'weights' column
         self.df = self.df.loc[
@@ -136,7 +136,7 @@ class ParticleResampler:
         self.df.reset_index(drop=True, inplace=True)
 
         # Recompute energy column
-        if energy_mev_dropped:
+        if kinetic_energy_mev_dropped:
             self.updater.add_energy_column()
 
         return self

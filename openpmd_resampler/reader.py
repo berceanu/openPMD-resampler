@@ -183,8 +183,8 @@ class OpenPMDLoader:
 
         mass = self.particle_species_mass * constants.electron_mass_mev_c2
 
-        energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + mass**2)
-        self.data["energy_mev"] = energy_mev - mass
+        kinetic_energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + mass**2)
+        self.data["kinetic_energy_mev"] = kinetic_energy_mev - mass
 
 
 class DataFrameUpdater:
@@ -199,7 +199,7 @@ class DataFrameUpdater:
 
     def add_energy_column(self):
         mass = self.particle_species_mass * constants.electron_mass_mev_c2
-        self.df["energy_mev"] = np.sqrt(
+        self.df["kinetic_energy_mev"] = np.sqrt(
             self.df["momentum_x_mev_c"] ** 2
             + self.df["momentum_y_mev_c"] ** 2
             + self.df["momentum_z_mev_c"] ** 2
@@ -217,7 +217,7 @@ class DataAnalyzer:
         dataset_info(self.df)
 
         weighted_average_energy = np.average(
-            self.df["energy_mev"], weights=self.df["weights"]
+            self.df["kinetic_energy_mev"], weights=self.df["weights"]
         )
         logger.info(
             "The (weighted) mean energy is %.6e MeV.\n", weighted_average_energy

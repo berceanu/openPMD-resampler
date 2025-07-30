@@ -43,7 +43,7 @@ class DataFrameToFile:
         if not self.include_weights:
             columns_to_write.remove("weights")
         if not self.include_energy:
-            columns_to_write.remove("energy_mev")
+            columns_to_write.remove("kinetic_energy_mev")
 
         # Write header to file
         with open(file_path, "w", encoding="utf-8") as f:
