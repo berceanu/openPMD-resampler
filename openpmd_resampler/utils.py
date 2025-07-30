@@ -11,13 +11,13 @@ from PIL import Image
 from .log import logger
 from .units import constants
 
-def convert_bytes_to_mb(size_in_bytes):
-    """Convert size in bytes to megabytes (MB)"""
-    return size_in_bytes / (1024.0**2)
-
-def convert_bytes_to_gb(size_in_bytes):
-    """Convert size in bytes to gigabytes (GB)"""
-    return size_in_bytes / (1024.0**3)
+def format_file_size(size_bytes):
+    """Convert file size to human-readable format."""
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.2f} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.2f} PB"  # For petabyte-sized files just in case
 
 def thousand_separators(number):
     return f"{number:,}"
