@@ -18,7 +18,7 @@ def main():
     parser.add_argument("--species", "-s", type=str, default="e_all",
                         help="Particle species name (default: e_all)")
     parser.add_argument("--mass", "-m", type=float, default=1.0,
-                        help="Particle mass (default: 1.0)")
+                        help="Particle mass relative to the electron mass (default: 1.0)")
     parser.add_argument("--reduction_factor", "-k", type=float, default=2.0,
                         help="The 'k' level for global leveling thinning (default: 2.0)")
     parser.add_argument("--no_plot", action="store_true",
