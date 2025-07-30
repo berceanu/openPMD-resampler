@@ -140,7 +140,7 @@ class StandardHistogram(Histogram):
 
 
 class StandardHistogramPlot(HistogramPlot):
-    y_label = "Number of 'real' electrons"
+    y_label = "Number of 'real' particles"
 
     def plot(self, x_coords, density, color):
         self.ax.plot(

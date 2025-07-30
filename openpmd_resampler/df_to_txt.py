@@ -9,7 +9,7 @@ import pandas as pd
 
 from .log import logger
 from .units import units
-from .utils import convert_bytes_to_gb
+from .utils import format_file_size
 
 
 class DataFrameToFile:
@@ -43,7 +43,7 @@ class DataFrameToFile:
         if not self.include_weights:
             columns_to_write.remove("weights")
         if not self.include_energy:
-            columns_to_write.remove("energy_mev")
+            columns_to_write.remove("kinetic_energy_mev")
 
         # Write header to file
         with open(file_path, "w", encoding="utf-8") as f:
@@ -66,6 +66,5 @@ class DataFrameToFile:
         logger.info("Wrote %s\n", file_path)
 
         # Compute and log the file size
-        file_size_bytes = os.path.getsize(file_path)
-        file_size_gb = convert_bytes_to_gb(file_size_bytes)
-        logger.info("Final file size: %.2f GB", file_size_gb)
+        file_size = os.path.getsize(file_path)
+        logger.info("Final file size: %s\n", format_file_size(file_size))

@@ -66,7 +66,7 @@ class MultiplePanelPlotter(ABC):
 
 class MultipleHistogramPlotter(MultiplePanelPlotter):
     layout = (3, 3, 2)
-    energy_col = "energy_mev"
+    energy_col = "kinetic_energy_mev"
     energy_label = "Energy (MeV)"
 
     def __init__(self, df, output_filename=None):

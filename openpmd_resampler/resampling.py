@@ -35,7 +35,7 @@ class ParticleResampler:
     def random_weights(self) -> pd.DataFrame:
         min_weight = self.df[self.weight_column].min()
         max_weight = self.df[self.weight_column].max()
-        random_generator = np.random.default_rng(seed=42)
+        random_generator = np.random.default_rng(seed=77125)
         self.df[self.weight_column] = random_generator.uniform(
             min_weight, max_weight, size=self.df.shape[0]
         )
@@ -45,7 +45,7 @@ class ParticleResampler:
     def simple_thinning(self, number_of_remaining_macroparticles: int) -> pd.DataFrame:
         number_of_remaining_macroparticles = int(number_of_remaining_macroparticles)
 
-        random_generator = np.random.default_rng(seed=42)
+        random_generator = np.random.default_rng(seed=77125)
         number_of_initial_macroparticles = self.df.shape[0]
 
         # Generate random indices for deletion
@@ -79,7 +79,7 @@ class ParticleResampler:
         threshold_weight = k * average_weight
 
         # Generate random numbers for each particle
-        random_generator = np.random.default_rng(seed=42)
+        random_generator = np.random.default_rng(seed=77125)
         random_numbers = random_generator.uniform(0.0, 1.0, size=self.df.shape[0])
 
         # Create a mask for particles to be deleted
@@ -105,13 +105,13 @@ class ParticleResampler:
         Repeat each row based on the 'weights' column, set all 'weights' to 1,
         and add a small random value to the position and momentum columns.
         """
-        random_generator = np.random.default_rng(seed=42)
+        random_generator = np.random.default_rng(seed=77125)
 
         # Drop energy column
-        energy_mev_dropped = False
-        if "energy_mev" in self.df.columns:
-            self.df.drop(columns=["energy_mev"], inplace=True)
-            energy_mev_dropped = True
+        kinetic_energy_mev_dropped = False
+        if "kinetic_energy_mev" in self.df.columns:
+            self.df.drop(columns=["kinetic_energy_mev"], inplace=True)
+            kinetic_energy_mev_dropped = True
 
         # Repeat rows based on the 'weights' column
         self.df = self.df.loc[
@@ -136,7 +136,7 @@ class ParticleResampler:
         self.df.reset_index(drop=True, inplace=True)
 
         # Recompute energy column
-        if energy_mev_dropped:
+        if kinetic_energy_mev_dropped:
             self.updater.add_energy_column()
 
         return self

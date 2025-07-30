@@ -23,9 +23,10 @@ class Attributes(Enum):
 
 
 class OpenPMDLoader:
-    def __init__(self, file_path: str, particle_species_name: str = "e_all"):
+    def __init__(self, file_path: str, particle_species_name: str = "e_all",particle_species_mass: float = 1.0):
         self.file_path = str(file_path)
         self.particle_species_name = particle_species_name
+        self.particle_species_mass = particle_species_mass
 
         self.series = self.open_series()
 
@@ -44,7 +45,7 @@ class OpenPMDLoader:
         logger.info("Detected particle species: %s.\n", detected_species)
         if self.particle_species_name not in detected_species:
             raise ValueError(f"Provided species '{self.particle_species_name}' not available. Detected species: {detected_species}")
-        self.electrons = self.iteration.particles[self.particle_species_name]
+        self.particles = self.iteration.particles[self.particle_species_name]
 
         self.data, self.units = self.get_particle_data_and_units()
 
@@ -92,13 +93,13 @@ class OpenPMDLoader:
 
         for attribute in Attributes:
             for component in Components:
-                data[f"{attribute.value}_{component.value}"] = self.electrons[
+                data[f"{attribute.value}_{component.value}"] = self.particles[
                     attribute.value
                 ][component.value].load_chunk()
-                units[f"{attribute.value}_{component.value}"] = self.electrons[
+                units[f"{attribute.value}_{component.value}"] = self.particles[
                     attribute.value
                 ][component.value].unit_SI
-                dimensions[f"{attribute.value}_{component.value}"] = self.electrons[
+                dimensions[f"{attribute.value}_{component.value}"] = self.particles[
                     attribute.value
                 ].unit_dimension
                 np.testing.assert_allclose(
@@ -108,13 +109,13 @@ class OpenPMDLoader:
                     rtol=0,
                 )
 
-        data["weights"] = self.electrons["weighting"][
+        data["weights"] = self.particles["weighting"][
             io.Record_Component.SCALAR
         ].load_chunk()
-        units["weights"] = self.electrons["weighting"][
+        units["weights"] = self.particles["weighting"][
             io.Record_Component.SCALAR
         ].unit_SI
-        dimensions["weights"] = self.electrons["weighting"].unit_dimension
+        dimensions["weights"] = self.particles["weighting"].unit_dimension
         np.testing.assert_allclose(
             dimensions["weights"], expected_dims.weights, atol=1e-9, rtol=0
         )
@@ -122,10 +123,10 @@ class OpenPMDLoader:
         return data, units
 
     def rescale_momenta(self):
-        macro_weighted = self.electrons[f"{Attributes.MOMENTUM.value}"].get_attribute(
+        macro_weighted = self.particles[f"{Attributes.MOMENTUM.value}"].get_attribute(
             "macroWeighted"
         )
-        weighting_power = self.electrons[f"{Attributes.MOMENTUM.value}"].get_attribute(
+        weighting_power = self.particles[f"{Attributes.MOMENTUM.value}"].get_attribute(
             "weightingPower"
         )
         if (macro_weighted == 1) and (weighting_power != 0):
@@ -180,8 +181,10 @@ class OpenPMDLoader:
         momentum_y = self.data[f"{Attributes.MOMENTUM.value}_y"]
         momentum_z = self.data[f"{Attributes.MOMENTUM.value}_z"]
 
-        energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + constants.electron_mass_mev_c2**2)
-        self.data["energy_mev"] = energy_mev
+        mass = self.particle_species_mass * constants.electron_mass_mev_c2
+
+        kinetic_energy_mev = np.sqrt(momentum_x**2 + momentum_y**2 + momentum_z**2 + mass**2)
+        self.data["kinetic_energy_mev"] = kinetic_energy_mev - mass
 
 
 class DataFrameUpdater:
@@ -195,13 +198,13 @@ class DataFrameUpdater:
         return self._df_or_class_with_df.df
 
     def add_energy_column(self):
-        self.df["energy_mev"] = np.sqrt(
+        mass = self.particle_species_mass * constants.electron_mass_mev_c2
+        self.df["kinetic_energy_mev"] = np.sqrt(
             self.df["momentum_x_mev_c"] ** 2
             + self.df["momentum_y_mev_c"] ** 2
             + self.df["momentum_z_mev_c"] ** 2
-            + constants.electron_mass_mev_c2**2
-        )
-
+            + mass**2
+        ) - mass
 
 class DataAnalyzer:
     def __init__(self, df: pd.DataFrame):
@@ -214,7 +217,7 @@ class DataAnalyzer:
         dataset_info(self.df)
 
         weighted_average_energy = np.average(
-            self.df["energy_mev"], weights=self.df["weights"]
+            self.df["kinetic_energy_mev"], weights=self.df["weights"]
         )
         logger.info(
             "The (weighted) mean energy is %.6e MeV.\n", weighted_average_energy
@@ -222,16 +225,16 @@ class DataAnalyzer:
 
 
 class ParticleDataReader:
-    def __init__(self, file_path: str, particle_species_name: str = "e_all"):
-        self.loader = OpenPMDLoader(file_path, particle_species_name)
+    def __init__(self, file_path: str, particle_species_name: str = "e_all", particle_species_mass: float = 1.0):
+        self.loader = OpenPMDLoader(file_path, particle_species_name, particle_species_mass)
         self.updater = DataFrameUpdater(self.loader.df)
         self.analyzer = DataAnalyzer(self.updater.df)
 
     @classmethod
     def from_file(
-        cls, file_path: str, particle_species_name: str = "e_all"
+        cls, file_path: str, particle_species_name: str = "e_all", particle_species_mass: float = 1.0
     ) -> pd.DataFrame:
-        reader = cls(file_path, particle_species_name)
+        reader = cls(file_path, particle_species_name, particle_species_mass)
         return reader.df
 
     @property

@@ -29,12 +29,12 @@ For production runs, use
 
 ```console
 $ cd openPMD-resampler
-$ pixi run start --opmd_path <path_to_your_openPMD_file> --species <electron_species_name> --reduction_factor <k>
+$ pixi run start --opmd_path <path_to_your_openPMD_file> --species <particle_species_name> --mass <particle mass> --reduction_factor <k>
 ```
 
 Replace descriptions between chevrons `<>` by relevant values, in this case the
-path to the PIC output file, name of the electron species (`e_all` or
-`e_highGamma` etc.) and an integer reduction factor `k`, typically between 2 and ~100.
+path to the PIC output file, name of the particle species (`e_all` or
+`e_highGamma` etc.), particle mass relative to the electron mass (default: 1.0) (1.0 for electron, 1836.152 for proton, or 22033.824 for carbon etc.), and an integer reduction factor `k`, typically between 2 and ~100.
 If the initial PIC file has `N` macroparticles, the resulting reduced file will have `N/k`
 macroparticles.
 
