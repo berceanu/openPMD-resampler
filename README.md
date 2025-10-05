@@ -62,6 +62,22 @@ For a computational estimate, here is a quote from Ref. [1]:
 
 > The computer system for [`GEANT4`](https://geant4.web.cern.ch) simulation is made up of Intel Quad-core 2.66 GHz CPU and 12 GB DDR3 RAM and OS is Ubuntu 9.04 server version. It took about 3~4 hours to simulate with $10^7$ primary particles.
 
+## :writing_hand: Citing
+
+If you use `openPMD-resampler` in your research, please cite it as follows:
+
+```bibtex
+@software{berceanu_2025_17272699,
+  author       = {Berceanu, Andrei},
+  title        = {openPMD-resampler},
+  month        = oct,
+  year         = 2025,
+  publisher    = {Zenodo},
+  version      = {0.5.1},
+  doi          = {10.5281/zenodo.17272699},
+  url          = {https://doi.org/10.5281/zenodo.17272699}
+}
+```
 
 ## :books: References
 
