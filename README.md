@@ -1,7 +1,7 @@
 <img src="./resampler_logo.png" alt="Resampler Logo" width="400"/>
 
 
-Resampling tools for `openPMD` PIC data
+Resampling tools for `openPMD` PIC data.
 
 ## :bulb: Motivation
 
