@@ -12,6 +12,7 @@ from .utils import dataset_info
 from .reader import DataFrameUpdater
 from .vranic import VranicMerger
 from .voronoi import VoronoiMerger
+from .upsampling import KernelUpsampler
 
 
 class ParticleResampler:
@@ -205,6 +206,57 @@ class ParticleResampler:
         )
 
         logger.info("Dataset after Voronoi merging.\n")
+        dataset_info(self.df)
+
+        return self
+
+    def kernel_upsampling(
+        self,
+        upsampling_factor: int = 10,
+        spatial_bins: Tuple[int, int, int] = (16, 16, 16),
+        position_bandwidth: float = 0.1,
+        momentum_bandwidth: float = 0.1,
+        device: str = None,
+    ) -> pd.DataFrame:
+        """
+        Upsample macroparticles by antithetic kernel splitting: the inverse of
+        the mergers, for a dataset with too few macroparticles for good
+        post-processing statistics.
+
+        Each parent macroparticle is split into upsampling_factor daughters of
+        weight w/n, scattered around the parent by Gaussian noise whose width is
+        the local weighted phase-space spread (estimated per spatial cell) times
+        the position and momentum bandwidths. The daughters come in antithetic
+        pairs (+delta, -delta), so total weight and total momentum are conserved
+        exactly per parent; total energy is conserved only to second order in
+        the bandwidth (the error is positive, shrinks with the bandwidth and is
+        logged), because p(E) is concave and a nontrivial 1 -> many split of a
+        massive particle cannot hold weight, momentum and energy at once.
+
+        This is meant for post-processing statistics only, not for feeding the
+        result back into a PIC simulation.
+
+        The particle mass is taken from the particle_species_mass given to the
+        constructor (relative to the electron mass, 0.0 for photons).
+
+        The split runs on PyTorch tensors; device selects where ("cuda",
+        "cuda:1", "cpu", ...). The default uses the GPU when one is available
+        (NVIDIA CUDA and AMD ROCm builds both expose it as "cuda").
+        """
+        upsampler = KernelUpsampler(
+            self.df,
+            mass_mev_c2=self.particle_species_mass * constants.electron_mass_mev_c2,
+            weight_column=self.weight_column,
+        )
+        self.df = upsampler.upsample(
+            upsampling_factor=upsampling_factor,
+            spatial_bins=spatial_bins,
+            position_bandwidth=position_bandwidth,
+            momentum_bandwidth=momentum_bandwidth,
+            device=device,
+        )
+
+        logger.info("Dataset after kernel upsampling.\n")
         dataset_info(self.df)
 
         return self

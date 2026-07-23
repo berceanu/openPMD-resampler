@@ -53,6 +53,14 @@ The resampling algorithm is selected via `--algorithm` (or `-a`):
   position and then in momentum space, until the spread of every cluster falls below the given
   thresholds; each remaining cluster is replaced by a single macroparticle which exactly conserves
   total weight and momentum, with an energy error bounded by the momentum spread threshold.
+- `upsample`: kernel *upsampling*, the inverse problem — a dataset with too few macroparticles for
+  good post-processing statistics. Each parent macroparticle of weight `w` is split into `n`
+  daughters of weight `w/n`, scattered around the parent by Gaussian kernel noise sized to the
+  local phase-space spread (the weighted standard deviation of each coordinate within the parent's
+  spatial cell, times a user bandwidth). The daughters are drawn in antithetic pairs (+δ, −δ), so
+  total weight and momentum are conserved exactly per parent; energy is conserved to second order
+  in the bandwidth (for massive particles an exact 1 → many split conserving all three is
+  mathematically impossible), with the error logged.
 
 **Which algorithm should I use?** Use `thinning` when you just want a target reduction factor `k`
 and statistical conservation of the total charge is enough; it is the simplest option and the only
@@ -62,7 +70,12 @@ energy; it gives the best physics fidelity, but the reduction factor is only con
 through the coarseness of the spatial and momentum bins. Use `voronoi` when you want adaptive
 merging that follows the local phase-space structure, which works well for strongly non-uniform
 beams; it conserves weight and momentum exactly, and energy only up to the momentum spread
-threshold.
+threshold. Use `upsample` when you have the opposite problem — too *few* macroparticles (e.g. a
+heavily reduced or filtered dataset) and the downstream analysis needs smoother statistics; it
+multiplies the particle count by an exact factor while conserving weight and momentum exactly and
+energy up to the kernel bandwidth. Note that upsampling adds no physical information — it smooths
+the existing distribution for post-processing and is not a substitute for a better-resolved
+simulation.
 
 For example:
 
@@ -103,13 +116,29 @@ For example:
 $ pixi run start --opmd_path <path_to_your_openPMD_file> --species <particle_species_name> --mass <particle mass> --algorithm voronoi --rel_mom_spread_threshold 0.1 --spatial_bins 128 128 1024 --min_particles_to_merge 10
 ```
 
+The kernel upsampling accepts the following options:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--upsampling_factor N` | `10` | Number of daughters per parent macroparticle; the output has exactly `N` times the input rows, each daughter carrying `1/N` of the parent's weight. |
+| `--spatial_bins NX NY NZ` | `16 16 16` | Number of position bins along x, y, z used to estimate the local weighted phase-space spread. |
+| `--position_bandwidth B` | `0.1` | Kernel width for the position coordinates, as a fraction of the local weighted standard deviation; `0` leaves positions unperturbed. |
+| `--momentum_bandwidth B` | `0.1` | Same for the momentum coordinates; larger values smooth the momentum distribution more, at the cost of a larger (always positive) energy error. |
+| `--device D` | auto | Same as for the Vranic merging. |
+
+For example:
+
+```console
+$ pixi run start --opmd_path <path_to_your_openPMD_file> --species <particle_species_name> --mass <particle mass> --algorithm upsample --upsampling_factor 20 --momentum_bandwidth 0.05
+```
+
 Unlike thinning, the merging algorithms do not set the reduction factor directly: coarser binning
 (fewer bins) or larger spread thresholds merge more aggressively, at the cost of more phase-space
 smearing, while finer settings preserve the distribution better but merge less. Since the merged
-macroparticles have non-uniform weights, the `weights` column of the output file must be taken into
-account by the tracking code. For photons, use `--mass 0.0`.
+(and upsampled) macroparticles have non-uniform weights, the `weights` column of the output file
+must be taken into account by the tracking code. For photons, use `--mass 0.0`.
 
-Both merging algorithms run on PyTorch. The default environment ships the CPU build, so no CUDA
+The merging and upsampling algorithms run on PyTorch. The default environment ships the CPU build, so no CUDA
 packages are downloaded; to run on an NVIDIA GPU, use the `cuda` environment instead — it is the
 only one that requires a CUDA driver:
 
@@ -136,7 +165,7 @@ position_x_m (m), position_y_m (m), position_z_m (m), momentum_x_mev_c (MeV/c), 
 
 Positions are exported in meters and momenta in MeV/c, with the macroparticle `weights` as the last column.
 
-With `--fortran_unformatted`, the output is instead a Fortran unformatted (sequential, record-based) binary file with the records `n (int32), x, y, z, ux, uy, uz, w (float32 arrays)`, where the momenta are written as normalized momentum u = p/(m·c) (dimensionless, openPMD-viewer's `ux` convention) rather than MeV/c.
+With `--fortran_unformatted`, the output is instead a Fortran unformatted (sequential, record-based) binary file with the records `n (int32), x, y, z, ux, uy, uz, w (float32 arrays)`, where the momenta are written as normalized momentum u = p/(m·c) (dimensionless, openPMD-viewer's `ux` convention) rather than MeV/c. For massless species (`--mass 0.0`), the momenta are normalized by the electron mass instead, u = p/(m<sub>e</sub>·c), the usual PIC convention for photons. Note that this record format caps the output at ~1.07 billion particles (4 GiB per column record).
 
 ## :wrench: Development
 

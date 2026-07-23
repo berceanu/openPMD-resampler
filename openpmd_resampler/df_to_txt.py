@@ -8,7 +8,7 @@ import os
 import pandas as pd
 
 from .log import logger
-from .units import units
+from .units import constants, units
 from .utils import format_file_size
 
 MOMENTUM_COLUMNS = ["momentum_x_mev_c", "momentum_y_mev_c", "momentum_z_mev_c"]
@@ -31,6 +31,7 @@ class DataFrameToFile:
         self.include_weights = True
         self.include_energy = True
         self.momentum_divisor = None
+        self.momentum_unit = "m*c"
 
     def exclude_weights(self):
         self.include_weights = False
@@ -44,13 +45,17 @@ class DataFrameToFile:
         """
         Write momenta as normalized momentum u = p / (m c) instead of MeV/c,
         where m is the particle species mass (openpmd_viewer's 'ux' convention).
+        For massless species (mass_mev_c2 = 0), u = p / (m c) is undefined, so
+        the momenta are normalized by the electron mass instead, u = p / (m_e c),
+        the usual PIC convention for photon momenta (Smilei, PIConGPU).
         """
-        if mass_mev_c2 <= 0:
-            raise ValueError(
-                "momentum_in_mc requires a positive species mass;"
-                " u = p / (m c) is undefined for massless particles."
-            )
-        self.momentum_divisor = mass_mev_c2
+        if mass_mev_c2 < 0:
+            raise ValueError("momentum_in_mc requires a non-negative species mass.")
+        if mass_mev_c2 == 0:
+            self.momentum_divisor = constants.electron_mass_mev_c2
+            self.momentum_unit = "m_e*c"
+        else:
+            self.momentum_divisor = mass_mev_c2
         return self
 
     def write_to_file(self, file_path, fortran_unformatted=False):
@@ -79,7 +84,7 @@ class DataFrameToFile:
 
     def _column_unit(self, column):
         if self.momentum_divisor is not None and column in MOMENTUM_COLUMNS:
-            return "m*c"
+            return self.momentum_unit
         return self.units[column]
 
     def _write_csv(self, file_path, columns_to_write, chunk_size=5_000_000):
@@ -106,6 +111,17 @@ class DataFrameToFile:
     def _write_fortran_unformatted(self, file_path, columns_to_write):
         import numpy as np
         from scipy.io import FortranFile
+
+        # The Fortran sequential format stores n as int32 and each record's
+        # byte count as a uint32 marker (scipy wraps silently instead of
+        # raising), so one float32 column record caps the particle count.
+        max_rows = (2**32 - 1) // 4
+        if len(self.df) > max_rows:
+            raise ValueError(
+                f"{len(self.df):,} particles exceed the Fortran unformatted"
+                f" limit of {max_rows:,} (one 4 GiB record per float32 column);"
+                " reduce the particle count or write CSV instead."
+            )
 
         with FortranFile(file_path, "w") as f:
             f.write_record(np.array([len(self.df)], dtype=np.int32))

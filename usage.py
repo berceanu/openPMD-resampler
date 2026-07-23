@@ -21,10 +21,16 @@ def main():
     parser.add_argument("--mass", "-m", type=float, default=1.0,
                         help="Particle mass relative to the electron mass (default: 1.0)")
     parser.add_argument("--algorithm", "-a", type=str, default="thinning",
-                        choices=["thinning", "vranic", "voronoi"],
-                        help="Resampling algorithm: global leveling thinning, Vranic merging or Voronoi merging (default: thinning)")
+                        choices=["thinning", "vranic", "voronoi", "upsample"],
+                        help="Resampling algorithm: global leveling thinning, Vranic merging, Voronoi merging or kernel upsampling (default: thinning)")
     parser.add_argument("--reduction_factor", "-k", type=float, default=2.0,
                         help="The 'k' level for global leveling thinning (default: 2.0)")
+    parser.add_argument("--upsampling_factor", type=int, default=10,
+                        help="Kernel upsampling: number of daughters each macroparticle is split into (default: 10)")
+    parser.add_argument("--position_bandwidth", type=float, default=0.1,
+                        help="Kernel upsampling: position kernel width as a fraction of the local weighted spread; 0 disables (default: 0.1)")
+    parser.add_argument("--momentum_bandwidth", type=float, default=0.1,
+                        help="Kernel upsampling: momentum kernel width as a fraction of the local weighted spread; 0 disables (default: 0.1)")
     parser.add_argument("--spatial_bins", type=int, nargs=3, default=[16, 16, 16],
                         metavar=("NX", "NY", "NZ"),
                         help="Vranic/Voronoi merging: number of spatial bins (default: 16 16 16)")
@@ -87,9 +93,18 @@ def main():
             min_mean_energy_kev=args.min_mean_energy,
             device=args.device,
         ).finalize()
+    elif args.algorithm == "upsample":
+        # Daughter weights are w/n, non-uniform in general, so no set_weights_to(1).
+        df_thin = resampler.kernel_upsampling(
+            upsampling_factor=args.upsampling_factor,
+            spatial_bins=tuple(args.spatial_bins),
+            position_bandwidth=args.position_bandwidth,
+            momentum_bandwidth=args.momentum_bandwidth,
+            device=args.device,
+        ).finalize()
     else:
         df_thin = resampler.global_leveling_thinning(k=reduction_factor).finalize()
-    
+
     # Write the reduced dataframe to a file
     suffix = ".dat"
     writer = DataFrameToFile(df_thin).exclude_energy()

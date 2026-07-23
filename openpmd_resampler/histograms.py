@@ -27,27 +27,55 @@ def _uniform_histogram(
     resolution. Returns (bin_edges, counts).
     """
     if torch is not None and torch.cuda.is_available():
-        # torch.tensor copies: pandas/numpy may hand out read-only arrays.
-        tensor = torch.tensor(values, device="cuda")
+        # The bin edges only need the global min and max, which is cheap on
+        # the CPU (log10 is monotonic, so the log-space edges follow from the
+        # linear extrema); the aggregation then streams the data to the GPU in
+        # chunks sized to the free memory, so columns larger than the GPU
+        # still histogram there.
+        low, high = float(values.min()), float(values.max())
         if log_bins:
-            tensor = torch.log10(tensor)
-        low, high = (edge.item() for edge in torch.aminmax(tensor))
+            if low <= 0.0:
+                raise ValueError("log_bins requires strictly positive values.")
+            low, high = float(np.log10(low)), float(np.log10(high))
         if high == low:  # like np.histogram_bin_edges for constant data
             low, high = low - 0.5, high + 0.5
-        scaled = (tensor - low) / (high - low) * number_of_intervals
-        indices = scaled.long().clamp_(0, number_of_intervals - 1)
-        if weights is None:
-            counts = torch.bincount(indices, minlength=number_of_intervals)
-        else:
-            counts = torch.zeros(
-                number_of_intervals, dtype=torch.float32, device="cuda"
-            ).index_add_(0, indices, torch.tensor(weights, device="cuda"))
+        free_bytes, _ = torch.cuda.mem_get_info()
+        # values, weights and the long bin indices, plus transients.
+        chunk = max(int(free_bytes * 0.25) // 24, 1_000_000)
+        counts = torch.zeros(
+            number_of_intervals,
+            dtype=torch.long if weights is None else torch.float32,
+            device="cuda",
+        )
+        for start in range(0, values.shape[0], chunk):
+            # torch.tensor copies: pandas/numpy may hand out read-only arrays.
+            tensor = torch.tensor(values[start : start + chunk], device="cuda")
+            if log_bins:
+                tensor = torch.log10(tensor)
+            scaled = (tensor - low) / (high - low) * number_of_intervals
+            indices = scaled.long().clamp_(0, number_of_intervals - 1)
+            if weights is None:
+                counts += torch.bincount(indices, minlength=number_of_intervals)
+            else:
+                # counts is float32; the weights column may be float64, and
+                # index_add_ requires the source to match the destination dtype.
+                counts.index_add_(
+                    0,
+                    indices,
+                    torch.tensor(
+                        weights[start : start + chunk],
+                        dtype=torch.float32,
+                        device="cuda",
+                    ),
+                )
         bin_edges = np.linspace(low, high, number_of_intervals + 1)
         if log_bins:
             bin_edges = 10.0**bin_edges
         return bin_edges, counts.cpu().numpy()
 
     if log_bins:
+        if values.min() <= 0.0:
+            raise ValueError("log_bins requires strictly positive values.")
         bin_edges = np.logspace(
             np.log10(values.min()), np.log10(values.max()), num=number_of_intervals + 1
         )
