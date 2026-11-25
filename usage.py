@@ -5,6 +5,7 @@ visualizing phase space, resampling particles, and writing the results to a text
 import argparse
 from pathlib import Path
 
+from openpmd_resampler.calorimeter import particles_from_calorimeter
 from openpmd_resampler.df_to_txt import DataFrameToFile
 from openpmd_resampler.reader import ParticleDataReader
 from openpmd_resampler.resampling import ParticleResampler
@@ -15,14 +16,35 @@ from openpmd_resampler.visualize_phase_space import PhaseSpaceVisualizer
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--opmd_path", type=str, help="Path to the OpenPMD file")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--opmd_path", type=str, help="Path to the OpenPMD particle file")
+    source.add_argument("--calorimeter_path", type=str,
+                        help="Path to a PIConGPU particle calorimeter file (e.g. H_calorimeter_forward_80000.bp5);"
+                             " macroparticles are generated from it instead of read from --opmd_path")
+    parser.add_argument("--density_path", type=str, default=None,
+                        help="Calorimeter input: openPMD file with the species density mesh at the same iteration"
+                             " (e.g. simOutput/openPMD/simData_080000.bp5), used to draw positions;"
+                             " omit to place all particles at the origin")
+    parser.add_argument("--density_mesh", type=str, default=None,
+                        help="Calorimeter input: name of the density mesh (default: <species>_density, e.g. H_all_density)")
+    parser.add_argument("--calorimeter_sampling", type=str, default="random", choices=["random", "per_bin"],
+                        help="Calorimeter input: 'random' draws --num_macroparticles equal-weight macroparticles;"
+                             " 'per_bin' puts --particles_per_bin variable-weight macroparticles in every non-empty bin"
+                             " (default: random)")
+    parser.add_argument("--num_macroparticles", type=float, default=1e6,
+                        help="Calorimeter input, random sampling: number of macroparticles (default: 1e6)")
+    parser.add_argument("--particles_per_bin", type=int, default=1,
+                        help="Calorimeter input, per_bin sampling: macroparticles per non-empty bin (default: 1)")
+    parser.add_argument("--calorimeter_energy_range", type=float, nargs=2, default=None, metavar=("MIN", "MAX"),
+                        help="Calorimeter input: only use energy bins entirely inside [MIN, MAX] MeV (default: all)")
     parser.add_argument("--species", "-s", type=str, default="e_all",
                         help="Particle species name (default: e_all)")
     parser.add_argument("--mass", "-m", type=float, default=1.0,
                         help="Particle mass relative to the electron mass (default: 1.0)")
-    parser.add_argument("--algorithm", "-a", type=str, default="thinning",
-                        choices=["thinning", "vranic", "voronoi", "upsample"],
-                        help="Resampling algorithm: global leveling thinning, Vranic merging, Voronoi merging or kernel upsampling (default: thinning)")
+    parser.add_argument("--algorithm", "-a", type=str, default=None,
+                        choices=["thinning", "vranic", "voronoi", "upsample", "none"],
+                        help="Resampling algorithm: global leveling thinning, Vranic merging, Voronoi merging, kernel upsampling"
+                             " or none (default: thinning for --opmd_path, none for --calorimeter_path)")
     parser.add_argument("--reduction_factor", "-k", type=float, default=2.0,
                         help="The 'k' level for global leveling thinning (default: 2.0)")
     parser.add_argument("--upsampling_factor", type=int, default=10,
@@ -64,18 +86,35 @@ def main():
                         help="If set, the resulting dataframe will not be saved to file.")
 
     args = parser.parse_args()
-    opmd_path = Path(args.opmd_path)
     particle_species_name = args.species
     particle_species_mass = args.mass
     reduction_factor = args.reduction_factor
     fortran_unformatted = args.fortran_unformatted
 
-    # Create the dataframe
-    df = ParticleDataReader.from_file(opmd_path, particle_species_name=particle_species_name, particle_species_mass=particle_species_mass)
+    # Create the dataframe, either from PIC particles or from a calorimeter
+    if args.calorimeter_path is not None:
+        input_path = Path(args.calorimeter_path)
+        df = particles_from_calorimeter(
+            input_path,
+            density_path=args.density_path,
+            density_mesh=args.density_mesh or f"{particle_species_name}_density",
+            mass_mev_c2=particle_species_mass * constants.electron_mass_mev_c2,
+            mode=args.calorimeter_sampling,
+            num_macroparticles=int(args.num_macroparticles),
+            particles_per_bin=args.particles_per_bin,
+            energy_range_mev=args.calorimeter_energy_range,
+        )
+        algorithm = args.algorithm or "none"
+    else:
+        input_path = Path(args.opmd_path)
+        df = ParticleDataReader.from_file(input_path, particle_species_name=particle_species_name, particle_species_mass=particle_species_mass)
+        algorithm = args.algorithm or "thinning"
 
     # Apply the resampling algorithm to df, resulting in df_thin
     resampler = ParticleResampler(df, particle_species_mass=particle_species_mass)
-    if args.algorithm == "vranic":
+    if algorithm == "none":
+        df_thin = resampler.finalize()
+    elif algorithm == "vranic":
         df_thin = resampler.vranic_merging(
             spatial_bins=tuple(args.spatial_bins),
             momentum_bins=tuple(args.momentum_bins),
@@ -83,7 +122,7 @@ def main():
             log_scale=args.log_scale,
             device=args.device,
         ).finalize()
-    elif args.algorithm == "voronoi":
+    elif algorithm == "voronoi":
         df_thin = resampler.voronoi_merging(
             spatial_bins=tuple(args.spatial_bins),
             min_particles_to_merge=args.min_particles_to_merge,
@@ -93,7 +132,7 @@ def main():
             min_mean_energy_kev=args.min_mean_energy,
             device=args.device,
         ).finalize()
-    elif args.algorithm == "upsample":
+    elif algorithm == "upsample":
         # Daughter weights are w/n, non-uniform in general, so no set_weights_to(1).
         df_thin = resampler.kernel_upsampling(
             upsampling_factor=args.upsampling_factor,
@@ -111,14 +150,14 @@ def main():
     if fortran_unformatted:
         # Fortran consumers expect normalized momentum u = p/(m*c).
         writer.momentum_in_mc(particle_species_mass * constants.electron_mass_mev_c2)
-    writer.write_to_file(opmd_path.with_suffix(suffix), fortran_unformatted=fortran_unformatted)
+    writer.write_to_file(input_path.with_suffix(suffix), fortran_unformatted=fortran_unformatted)
 
     # Visualize both dataframes in order to see effects of thining
     phase_space = PhaseSpaceVisualizer(df, label="PIC data")
     phase_space_thin = PhaseSpaceVisualizer(df_thin, label="Resampled data")
     comparative_phase_space = phase_space + phase_space_thin
 
-    comparative_phase_space.create_plot().savefig(f"{opmd_path.parent}/comparative_phase_space_{args.algorithm}.png")
+    comparative_phase_space.create_plot().savefig(f"{input_path.parent}/comparative_phase_space_{algorithm}.png")
 
 
 if __name__ == "__main__":

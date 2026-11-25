@@ -149,6 +149,91 @@ $ pixi run -e cuda start --opmd_path <path_to_your_openPMD_file> --algorithm vra
 Spatial cells never interact, so datasets larger than the GPU memory are automatically processed
 in chunks of whole cells sized to the free GPU memory, without changing the result.
 
+### Particles from a calorimeter
+
+Instead of reading macroparticles with `--opmd_path`, you can **generate** them from a binned
+distribution with `--calorimeter_path`. The momenta come from the output of PIConGPU's
+[particle calorimeter plugin](https://picongpu.readthedocs.io/en/latest/usage/plugins/particleCalorimeter.html)
+(energy binning required), and the positions come from the species density mesh written by the
+openPMD plugin at the same iteration:
+
+```console
+$ pixi run start --calorimeter_path simOutput/H_calorimeter/H_calorimeter_forward_80000.bp5 \
+    --density_path simOutput/openPMD/simData_080000.bp5 --species H_all --mass 1836.152 \
+    --calorimeter_sampling random --num_macroparticles 1e6
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--density_path P` | none | openPMD file holding the density mesh. If it is omitted, all particles are placed at the origin. |
+| `--density_mesh M` | `<species>_density` | Name of the density mesh, e.g. `H_all_density`. |
+| `--calorimeter_sampling S` | `random` | `random` draws `--num_macroparticles` macroparticles with equal weights, treating the calorimeter as a probability distribution. `per_bin` puts `--particles_per_bin` macroparticles in every non-empty bin, with weights `N_bin / k`. This reproduces the histogram exactly, including sparse tails, but the weights are non-uniform. |
+| `--num_macroparticles N` | `1e6` | Number of macroparticles for `random`. |
+| `--particles_per_bin K` | `1` | Macroparticles per non-empty bin for `per_bin`. |
+| `--calorimeter_energy_range MIN MAX` | all | Only use energy bins that lie entirely inside `[MIN, MAX]` MeV. |
+
+How the calorimeter is read:
+
+- Each bin holds the total kinetic energy of the real particles in that bin. Its real particle count is that energy divided by the mean energy of the bin.
+- The underflow bin (below `minEnergy`) and the overflow bin (above `maxEnergy`) are excluded, because their energies are unknown. The fraction of the energy they hold is logged.
+- Within a bin, energies are uniform in log E (log binning) or in E (linear binning), and directions are uniform in solid angle. With this choice, the total kinetic energy is conserved in expectation.
+- The direction axes follow PIConGPU's definition (`yaw = atan2(p_x, p_y)`, `pitch = asin(p_z)`, rotated by `posYaw`/`posPitch`).
+- As for PIConGPU particle data, y and z are swapped, so the calorimeter's forward direction becomes +z.
+
+The `--algorithm` stage defaults to `none` here. You can still chain an algorithm, for example
+`--algorithm vranic` to compress `per_bin` output.
+
+**Limitation:** the calorimeter has no positions and the density mesh has no momenta, so positions
+and momenta are sampled **independently**, and position-momentum correlations are lost. The positions
+follow the whole species density (for example, the bulk of the target), not only the particles the
+calorimeter recorded.
+
+#### Checking the generated particles against the calorimeter
+
+`compare_calorimeter.py` (the `pixi run compare` task) reads the generated CSV files back in, bins
+them again into the calorimeter's own bins with PIConGPU's formulas, and plots them next to the
+calorimeter. It writes three figures:
+
+- `compare_dNdE.png`: the energy spectrum dN/dE.
+- `compare_energy_yaw.png`: the energy–angle map d²N/dE dθ, with θ the yaw angle and pitch summed over.
+- `compare_energy_yaw_polar.png`: the same map in polar form, with 0° along the laser axis.
+
+It also prints, for each CSV, the number of real particles, the highest energy reached, and the
+particle count in the 0–1, 1–3, 3–6 and 6 MeV–cutoff bands as a ratio to the calorimeter.
+
+Example: generate protons from iteration 200000 in both sampling modes, then compare. Each run of
+`start.py` writes `<calorimeter file>.dat` next to the calorimeter file, so rename the output
+before the next run:
+
+```console
+$ SIM=/media/ong/WORKDIR2/LaserWater_PIC_3D_shot_6/simOutput
+$ pixi run start --calorimeter_path $SIM/H_calorimeter/H_calorimeter_forward_200000.bp5 \
+    --density_path $SIM/openPMD/simData_200000.bp5 --species H_all --mass 1836.152 \
+    --calorimeter_sampling random --num_macroparticles 1e7
+$ mv $SIM/H_calorimeter/H_calorimeter_forward_200000.dat random_200000.dat
+$ pixi run start --calorimeter_path $SIM/H_calorimeter/H_calorimeter_forward_200000.bp5 \
+    --density_path $SIM/openPMD/simData_200000.bp5 --species H_all --mass 1836.152 \
+    --calorimeter_sampling per_bin
+$ mv $SIM/H_calorimeter/H_calorimeter_forward_200000.dat per_bin_200000.dat
+$ pixi run compare --calorimeter_path $SIM/H_calorimeter/H_calorimeter_forward_200000.bp5 \
+    --csv "resampled (random)=random_200000.dat" "resampled (per bin)=per_bin_200000.dat" \
+    --title "Iteration 200000" --out compare_200000
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--calorimeter_path P` | required | The calorimeter file the CSVs were generated from. |
+| `--csv LABEL=PATH ...` | required | One or more CSV files from `start.py`, each with its legend label. The calorimeter itself is always plotted first, labelled "PIConGPU's calorimeter". |
+| `--mass M` | `1836.152` | Species mass relative to the electron mass. It must match the `--mass` used to generate the CSVs. |
+| `--emax E` | 5% above the cutoff | Upper limit of the energy axis, in MeV. |
+| `--title T` | none | Figure title. |
+| `--out D` | `.` | Directory for the figures. |
+
+On this example, `per_bin` reproduces the calorimeter exactly: 9.25e11 protons, the cutoff at
+10.18 MeV, and the full energy–angle map. `random` with 1e7 macroparticles matches the spectrum
+within 2%, but each macroparticle carries 9.2e4 protons, so the sparse regions of the
+energy–angle map come out grainy or empty.
+
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
 The code works with `openPMD`-compatible PIC codes, such as [`WarpX`](https://github.com/ECP-WarpX/WarpX), [`PIConGPU`](https://github.com/ComputationalRadiationPhysics/picongpu), [`fbpic`](https://github.com/fbpic/fbpic), etc.
