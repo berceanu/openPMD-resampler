@@ -234,6 +234,12 @@ On this example, `per_bin` reproduces the calorimeter exactly: 9.25e11 protons, 
 within 2%, but each macroparticle carries 9.2e4 protons, so the sparse regions of the
 energy–angle map come out grainy or empty.
 
+<img src="./plots/calorimeter_energy_yaw.png" alt="Energy-angle map: PIConGPU's calorimeter vs resampled (random) vs resampled (per bin), iteration 200000" width="800"/>
+
+<img src="./plots/calorimeter_dNdE.png" alt="dN/dE: PIConGPU's calorimeter vs resampled (random) vs resampled (per bin), iteration 200000" width="500"/>
+
+The same map in polar form: [`plots/calorimeter_energy_yaw_polar.png`](./plots/calorimeter_energy_yaw_polar.png).
+
 If you need a sample PIC output file for testing, you can download [lwfa.h5](https://transfer.sequanium.de/qjhu1I2t56/lwfa.h5) [212M].
 
 The code works with `openPMD`-compatible PIC codes, such as [`WarpX`](https://github.com/ECP-WarpX/WarpX), [`PIConGPU`](https://github.com/ComputationalRadiationPhysics/picongpu), [`fbpic`](https://github.com/fbpic/fbpic), etc.
