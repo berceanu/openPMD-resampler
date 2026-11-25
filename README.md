@@ -158,7 +158,7 @@ distribution with `--calorimeter_path`. The momenta come from the output of PICo
 openPMD plugin at the same iteration:
 
 ```console
-$ pixi run start --calorimeter_path simOutput/H_calorimeter/H_calorimeter_forward_80000.bp5 \
+$ pixi run start --calorimeter_path simOutput/H_calorimeter/H_calorimeter_all_80000.bp5 \
     --density_path simOutput/openPMD/simData_080000.bp5 --species H_all --mass 1836.152 \
     --calorimeter_sampling random --num_macroparticles 1e6
 ```
@@ -206,16 +206,16 @@ Example: generate protons from iteration 200000 in both sampling modes, then com
 before the next run:
 
 ```console
-$ SIM=/media/ong/WORKDIR2/LaserWater_PIC_3D_shot_6/simOutput
-$ pixi run start --calorimeter_path $SIM/H_calorimeter/H_calorimeter_forward_200000.bp5 \
+$ SIM=~/FoilLCT/simOutput
+$ pixi run start --calorimeter_path $SIM/H_calorimeter/H_calorimeter_all_200000.bp5 \
     --density_path $SIM/openPMD/simData_200000.bp5 --species H_all --mass 1836.152 \
     --calorimeter_sampling random --num_macroparticles 1e7
-$ mv $SIM/H_calorimeter/H_calorimeter_forward_200000.dat random_200000.dat
-$ pixi run start --calorimeter_path $SIM/H_calorimeter/H_calorimeter_forward_200000.bp5 \
+$ mv $SIM/H_calorimeter/H_calorimeter_all_200000.dat random_200000.dat
+$ pixi run start --calorimeter_path $SIM/H_calorimeter/H_calorimeter_all_200000.bp5 \
     --density_path $SIM/openPMD/simData_200000.bp5 --species H_all --mass 1836.152 \
     --calorimeter_sampling per_bin
-$ mv $SIM/H_calorimeter/H_calorimeter_forward_200000.dat per_bin_200000.dat
-$ pixi run compare --calorimeter_path $SIM/H_calorimeter/H_calorimeter_forward_200000.bp5 \
+$ mv $SIM/H_calorimeter/H_calorimeter_all_200000.dat per_bin_200000.dat
+$ pixi run compare --calorimeter_path $SIM/H_calorimeter/H_calorimeter_all_200000.bp5 \
     --csv "resampled (random)=random_200000.dat" "resampled (per bin)=per_bin_200000.dat" \
     --title "Iteration 200000" --out compare_200000
 ```
