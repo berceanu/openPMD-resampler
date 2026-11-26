@@ -294,10 +294,7 @@ def test_kernel_upsampling_zero_bandwidth_reproduces_parents(beam, device):
     assert after["energy"] == pytest.approx(before["energy"], rel=1e-6)
 
 
-@pytest.mark.parametrize("device", devices())
-def test_vranic_merging_is_reproducible_on_cpu(beam, device):
-    if device != "cpu":
-        pytest.skip("GPU float atomics are not bit-reproducible by design")
+def test_vranic_merging_is_reproducible_on_cpu(beam):
     kwargs = dict(spatial_bins=(4, 4, 4), momentum_bins=(8, 8, 8), device="cpu")
     first = (
         ParticleResampler(beam, particle_species_mass=1.0)
