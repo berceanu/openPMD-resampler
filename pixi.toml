@@ -12,6 +12,7 @@ linux = "5.4.0"
 [tasks]
 usage = "python usage.py --opmd_path h5/lwfa.h5 --species e_highGamma --reduction_factor 2"
 start = "python start.py"
+compare = "python compare_calorimeter.py"
 
 [dependencies]
 python = "3.11.*"
