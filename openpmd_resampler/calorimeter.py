@@ -50,6 +50,18 @@ from .units import constants
 
 SEED = 77125
 
+
+def _sampler_rng(seed: int) -> np.random.Generator:
+    """
+    A child stream of seed, independent of np.random.default_rng(seed).
+
+    The resampling methods (e.g. global_leveling_thinning) draw from
+    default_rng(77125). If the sampler used that same stream, thinning would
+    reuse the uniform draw that picked each particle's bin and keep only one
+    end of the sampling CDF.
+    """
+    return np.random.default_rng(np.random.SeedSequence(seed).spawn(1)[0])
+
 POSITION_COLUMNS = ["position_x_m", "position_y_m", "position_z_m"]
 MOMENTUM_COLUMNS = ["momentum_x_mev_c", "momentum_y_mev_c", "momentum_z_mev_c"]
 
@@ -233,7 +245,7 @@ class CalorimeterSampler:
         self.density = density
         self.mass = mass_mev_c2
         self.energy_range_mev = energy_range_mev
-        self.rng = np.random.default_rng(seed)
+        self.rng = _sampler_rng(seed)
         if (
             density is not None
             and calorimeter.iteration is not None

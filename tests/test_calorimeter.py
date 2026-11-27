@@ -164,6 +164,41 @@ def test_random_mode_reproduces_bin_populations():
     assert (np.abs(sampled - target) <= 5 * sigma + 1e-9).all()
 
 
+def test_thinning_after_random_sampling_keeps_the_spectrum():
+    """
+    Thinning must not reuse the uniform draws that picked each particle's bin.
+
+    With a shared seed, global leveling thinning (k=2, equal weights) kept only
+    particles whose bin draw was below 1/2, i.e. the lower half of the sampling
+    CDF, and emptied the last bins.
+    """
+    from openpmd_resampler.resampling import ParticleResampler
+
+    calorimeter = synthetic_calorimeter()
+    calorimeter.energy_joule = np.zeros((5, 1, 1))
+    # Three decade-wide log bins with real counts in ratio about 1 : 2 : 3.
+    calorimeter.energy_joule[1:4, 0, 0] = [1e-9, 2e-8, 3e-7]
+    sampler = CalorimeterSampler(calorimeter, None, PROTON_MASS)
+    edges_mev = 1e-3 * sampler.energy_edges_kev()
+    df = sampler.sample(mode="random", num_macroparticles=200_000)
+    before = np.bincount(
+        np.searchsorted(edges_mev, df["kinetic_energy_mev"], side="right") - 1, minlength=3
+    )
+
+    thinned = (
+        ParticleResampler(df, particle_species_mass=1836.152)
+        .global_leveling_thinning(k=2.0)
+        .finalize()
+    )
+    after = np.bincount(
+        np.searchsorted(edges_mev, thinned["kinetic_energy_mev"], side="right") - 1, minlength=3
+    )
+
+    # Each particle survives independently with probability 1/2.
+    assert (before > 10_000).all()
+    np.testing.assert_array_less(np.abs(after - 0.5 * before), 5 * np.sqrt(0.25 * before))
+
+
 def test_forward_direction_is_plus_z():
     calorimeter = synthetic_calorimeter()
     calorimeter.energy_joule[:] = 0.0
