@@ -86,8 +86,30 @@ def main():
     parser.add_argument("--out", default=".", help="output directory for the figures")
     args = parser.parse_args()
 
-    cal = read_calorimeter(args.calorimeter_path)
-    mass_mev = args.mass * constants.electron_mass_mev_c2
+    csv_items = []
+    for item in args.csv:
+        if "=" not in item:
+            parser.error(f"--csv expects LABEL=PATH, got {item!r}")
+        csv_items.append(tuple(item.split("=", 1)))
+
+    compare(
+        read_calorimeter(args.calorimeter_path),
+        csv_items,
+        args.mass * constants.electron_mass_mev_c2,
+        out=args.out,
+        emax=args.emax,
+        title=args.title,
+    )
+
+
+def compare(cal, csv_items, mass_mev, out=".", emax=None, title=""):
+    """
+    Print the per-band count ratios and write the three figures.
+
+    csv_items: (label, path) pairs. A CSV with no particle inside the
+    calorimeter's energy and angle range is reported as having zero overlap and
+    shown as an empty curve and panel; the reference plots are still written.
+    """
     edges_kev = CalorimeterSampler(cal, None, mass_mev).energy_edges_kev()
     e_edges = edges_kev * 1e-3  # MeV
     e_centres = np.sqrt(e_edges[:-1] * e_edges[1:]) if cal.log_scale else 0.5 * (e_edges[:-1] + e_edges[1:])
@@ -97,22 +119,31 @@ def main():
     dtheta = np.diff(yaw_edges)
 
     datasets = [(CALORIMETER_LABEL, calorimeter_counts(cal, edges_kev))]
-    for item in args.csv:
-        if "=" not in item:
-            parser.error(f"--csv expects LABEL=PATH, got {item!r}")
-        label, path = item.split("=", 1)
+    for label, path in csv_items:
         counts, number, total = particle_counts(path, cal, mass_mev)
         datasets.append((label, counts))
         print(f"{label}: {number:,} macroparticles, {total:.4e} real particles")
 
     reference_spectrum = datasets[0][1].sum(axis=1)
     reference_total = reference_spectrum.sum()
-    last_bin = np.nonzero(reference_spectrum)[0].max()
-    emax = args.emax or 1.05 * e_edges[last_bin + 1]
+    reference_bins = np.nonzero(reference_spectrum)[0]
+    if reference_bins.size == 0:
+        raise SystemExit(f"{CALORIMETER_LABEL} has no particles in its inner energy bins; nothing to compare.")
+    last_bin = reference_bins.max()
+    emax = emax or 1.05 * e_edges[last_bin + 1]
     print(f"{CALORIMETER_LABEL}: {reference_total:.4e} real particles, max energy {e_edges[last_bin + 1]:.3f} MeV")
-    for label, counts in datasets[1:]:
+    for index, (label, counts) in enumerate(datasets[1:], start=1):
         spectrum = counts.sum(axis=1)
-        reach = e_edges[np.nonzero(spectrum)[0].max() + 1]
+        filled = np.nonzero(spectrum)[0]
+        if filled.size == 0:
+            print(
+                f"  {label}: zero overlap, no particle inside the calorimeter's range"
+                f" ({e_edges[0]:.4g} - {e_edges[-1]:.4g} MeV, |yaw| < {cal.max_yaw_deg:g} deg,"
+                f" |pitch| < {cal.max_pitch_deg:g} deg)"
+            )
+            datasets[index] = (f"{label} (no overlap)", counts)
+            continue
+        reach = e_edges[filled.max() + 1]
         rows = [f"{label}: max energy {reach:.3f} MeV"]
         for low, high in [(0, 1), (1, 3), (3, 6), (6, 1e9)]:
             band = (e_centres >= low) & (e_centres < high)
@@ -121,9 +152,9 @@ def main():
                 rows.append(f"N[{low}-{high if high < 1e9 else 'max'} MeV] ratio {spectrum[band].sum() / ref:.3f}")
         print("  " + ", ".join(rows))
 
-    out = Path(args.out)
+    out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    prefix = f"{args.title} " if args.title else ""
+    prefix = f"{title} " if title else ""
 
     # 1. dN/dE
     fig, ax = plt.subplots(figsize=(6, 3.4))
